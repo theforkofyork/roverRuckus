@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 
-@TeleOp(name="RR2", group="LANbros")
+@TeleOp(name="Tele", group="LANbros")
 public class TeleopMecanum extends OpMode {
 
     private ScoringLift lifter;
