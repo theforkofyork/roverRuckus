@@ -48,7 +48,7 @@ public class TeleopMecanum extends OpMode {
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
     double dumpIdle = .21;
-    double dumpPos = .845;
+    double dumpPos = .81;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -61,7 +61,7 @@ public class TeleopMecanum extends OpMode {
     double tiltUp = .26;
     double tiltDown = .67;
 
-    double gClosed = .73;
+    double gClosed = .74;
     double gOpen = .1;
 
     boolean isWaiting = false;
@@ -362,7 +362,7 @@ public class TeleopMecanum extends OpMode {
     public void lift() {
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.25);
+        dump.setPosition(.26);
 
         //sleep(00);
         lifter.setLiftSetpoint(665);

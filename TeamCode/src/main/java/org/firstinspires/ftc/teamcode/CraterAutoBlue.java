@@ -443,4 +443,85 @@ I solved for arctan(.5/(root(2)/2)) in degrees*/
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
+    public void rightGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = robot.rightFrontWheel.getCurrentPosition();
+        target %= 360;
+        while (startCount - encoderCounts>robot.rightFrontWheel.getCurrentPosition() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power  + (currentHeading - target) / speed;
+            RL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power - (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(-FL_speed);
+            robot.rightFrontWheel.setPower(FR_speed);
+            robot.leftBackWheel.setPower(RL_speed);
+            robot.rightBackWheel.setPower(-RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }
+    public void leftGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = getStrafeEncoderAverage();
+        target %= 360;
+        while (startCount - encoderCounts<getStrafeEncoderAverage() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power - (currentHeading - target) / speed;
+            RL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power + (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(FL_speed);
+            robot.rightFrontWheel.setPower(-FR_speed);
+            robot.leftBackWheel.setPower(-RL_speed);
+            robot.rightBackWheel.setPower(RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }   public int getStrafeEncoderAverage(){
+    double FL = Math.abs(robot.rightFrontWheel.getCurrentPosition());
+    double FR = Math.abs(robot.rightBackWheel.getCurrentPosition());
+    double BL = Math.abs(robot.leftBackWheel.getCurrentPosition());
+    double BR = Math.abs(robot.leftFrontWheel.getCurrentPosition());
+
+    return (int)(FL+FR+BL+BR)/4;
+}
+    public int getFwdEncoderAverage(){
+        double FL = robot.rightFrontWheel.getCurrentPosition();
+        double FR = robot.rightBackWheel.getCurrentPosition();
+        double BL = robot.leftBackWheel.getCurrentPosition();
+        double BR = robot.leftFrontWheel.getCurrentPosition();
+
+        return (int)(FL+FR+BL+BR)/4;
+    }
+
 }
