@@ -16,7 +16,6 @@ import com.qualcomm.robotcore.util.Range;
 public class TeleopMecanum extends OpMode {
 
     private ScoringLift lifter;
-    private Extension extender;
 
     public TeleopMecanum() {
 
@@ -41,7 +40,7 @@ public class TeleopMecanum extends OpMode {
     boolean dumping;
     double gUpKp = 0.01;
     int gUpTolerance = 8;
-    double gDownKp = 0.003;
+    double gDownKp = 0.0025;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
@@ -112,10 +111,11 @@ public class TeleopMecanum extends OpMode {
         rightFrontWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lifter = new ScoringLift(lift, gUpKp, gUpTolerance, gDownKp, gDownTolerance);
-        extender = new Extension(extend, eUpKp, eUpTolerance, eDownKp, eDownTolerance);
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hang.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        telemetry.addData("status", "loop test... waiting for start");
+        telemetry.update();
 
 
     }
@@ -133,6 +133,7 @@ public class TeleopMecanum extends OpMode {
 
     @Override
     public void loop() {
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 
         float Ch1 = gamepad1.right_stick_x;
@@ -189,7 +190,7 @@ public class TeleopMecanum extends OpMode {
 
         if (hanger) {
             lifter.relinquish();
-            extender.relinquish();
+         //   extender.relinquish();
         }
 
 
@@ -211,7 +212,7 @@ public class TeleopMecanum extends OpMode {
         if (gamepad1.dpad_up) {
             extending = true;
             retracting = false;
-            extender.setLiftPower(1);
+            extend.setPower(1);
         } else if (gamepad1.dpad_down) {
             extending = false;
             // in.setPower(-1);
@@ -244,16 +245,14 @@ public class TeleopMecanum extends OpMode {
         }
         if (gamepad1.right_stick_button) {
             extending = true;
+            hanger = false;
             slow = true;
             tilt.setPosition(tiltUp);
-            raise();
+            //raise();
             g.setPosition(gClosed);
         }
         if (gamepad1.left_stick_button) {
-            slow = false;
-            extending = false;
-            g.setPosition(gOpen);
-            tilt.setPosition(tiltDown);
+                hanger = true;
         }
 
 
@@ -266,10 +265,10 @@ public class TeleopMecanum extends OpMode {
             dump.setPosition(dumpIdle);
             if (lifting) {
                 tilt.setPosition(tiltUp);
-                raise();
+                //raise();
                 g.setPosition(gClosed);
-                extender.setLiftPower(1);
-                sleep(100);
+                extend.setPower(1);
+                //sleep(100);
                 lifting = false;
             }
             if (lift.getCurrentPosition() <= 10) {
@@ -308,6 +307,8 @@ public class TeleopMecanum extends OpMode {
 
         }
 
+        lifter.update();
+
 
         telemetry.addData("lift pos", lift.getCurrentPosition());
         telemetry.addData("hang pos", hang.getCurrentPosition());
@@ -324,7 +325,7 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void stop() {
         lifter.close();
-        extender.close();
+        //extender.close();
         //   tilt.getController().pwmDisable();
         tilt.setPwmDisable();
     }
@@ -362,7 +363,7 @@ public class TeleopMecanum extends OpMode {
     public void lift() {
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.26);
+        dump.setPosition(.25);
 
         //sleep(00);
         lifter.setLiftSetpoint(665);
@@ -382,7 +383,7 @@ public class TeleopMecanum extends OpMode {
             }
             else if (i < 1) {
                 //extender.setLiftSetpoint(-300);
-                extender.setLiftPower(-.9);
+                extend.setPower(-.9);
 
             }
         }
@@ -393,7 +394,7 @@ public class TeleopMecanum extends OpMode {
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            extender.relinquish();
+            //extender.relinquish();
             retracting = false;
             // reset isWaiting so this whole thing can run again
             isWaiting = false;
@@ -411,12 +412,5 @@ public class TeleopMecanum extends OpMode {
             Thread.currentThread().interrupt();
         }
     }
-    public void raise() {
-        in.setPower(-1);
-        sleep(80);
-        in.setPower(0);
-        //in.setPower(-1);
-    }
-
 
 }

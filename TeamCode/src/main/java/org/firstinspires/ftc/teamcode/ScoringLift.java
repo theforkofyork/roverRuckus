@@ -19,25 +19,19 @@ public class ScoringLift {
         this.upTolerance = upTolerance;
         this.downKp = downKp;
         this.downTolerance = downTolerance;
-        new Thread() {
-            @Override
-            public void run() {
-                while(running) {
-                    if(!hold)
-                        continue;
-                    int encPos1 = getEncPos1();
-                    if(encPos1 < liftSetpoint1 - ScoringLift.this.upTolerance) {
-                        set1((liftSetpoint1 - encPos1) * ScoringLift.this.upKp);
-                    } else if(encPos1 > liftSetpoint1 + ScoringLift.this.downTolerance) {
-                        set1((liftSetpoint1 - encPos1) * ScoringLift.this.downKp);
-                    } else {
-                        set1(0);
-                    }
+    }
 
-                    Thread.yield();
-                }
+    public void update() {
+        if(hold) {
+            int encPos1 = getEncPos1();
+            if(encPos1 < liftSetpoint1 - ScoringLift.this.upTolerance) {
+                set1((liftSetpoint1 - encPos1) * ScoringLift.this.upKp);
+            } else if(encPos1 > liftSetpoint1 + ScoringLift.this.downTolerance) {
+                set1((liftSetpoint1 - encPos1) * ScoringLift.this.downKp);
+            } else {
+                set1(0);
             }
-        }.start();
+        }
     }
 
     private void set1(double power) {
