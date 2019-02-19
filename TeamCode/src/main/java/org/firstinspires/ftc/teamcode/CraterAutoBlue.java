@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -104,6 +105,9 @@ public class CraterAutoBlue extends LinearOpMode
         Return,
         AlignWithDepot,
         Stop,
+        LanderScore,
+        LanderAlign,
+        cycle,
 
     }
     LBHW robot = new LBHW();
@@ -116,7 +120,7 @@ public class CraterAutoBlue extends LinearOpMode
     BNO055IMU imu;
     Orientation angles;
     Acceleration gravity;
-
+    boolean touched = false;
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -133,6 +137,7 @@ public class CraterAutoBlue extends LinearOpMode
     Dogeforia vuforia;
     WebcamName webcamName;
     List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+
 
     GoldAlignDetector detector;
 
@@ -183,6 +188,7 @@ public class CraterAutoBlue extends LinearOpMode
         imu.initialize(parameters);
 
         // Set up our telemetry dashboard
+
         composeTelemetry();
         telemetry.update();
 
@@ -215,18 +221,26 @@ public class CraterAutoBlue extends LinearOpMode
             Thread.currentThread().interrupt();
         } */
         state = State.Lower;
+        while (opModeIsActive()) {
+            telemetry.addData("status", "loop test... waiting for start");
+            telemetry.update();
+        }
 
         waitForStart();
 
 
         while (opModeIsActive()) {
+            telemetry.addData("status", "loop test... waiting for start");
+            telemetry.update();
 
             switch (state) {
 
                 case Lower: {
-                    robot.tilt.setPosition(.768);
+                    telemetry.clear();
+                    telemetry.update();
+                    robot.tilt.setPosition(robot.tiltDown);
                     robot.hang.setPower(-1);
-                    sleep(2000);
+                    sleep(1500);
                     robot.hang.setPower(0);
                     state = State.Turn;
 
@@ -234,18 +248,20 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Turn: {
-                    powerDrive(.34);
+                    rightStrafe(.35);
+                    sleep(200);
+                    powerDrive(.2);
                     sleep(360);
-                    right(.3);
-                    left(-.3);
-                    sleep(600);
+                    leftStrafe(.2);
+                    sleep(200);
+                    powerDrive(0);
+                    right(-.3);
+                    left(.3);
+                    sleep(900);
                     powerDrive(0);
                     robot.hang.setPower(1);
-                    sleep(1500);
+                    sleep(600);
                     robot.hang.setPower(0);
-                    //sleep(1000);
-                    powerDrive(0);
-                    sleep(300);
                     state = State.Detect;
                 }
                 break;
@@ -253,41 +269,87 @@ public class CraterAutoBlue extends LinearOpMode
                 case Detect: {
                     while (opModeIsActive() && !detected) {
                         if (!detector.getAligned() && !detected) {
-                            right(-.05);
-                            left(.05);
+                            right(.12);
+                            left(-.12);
                         } else if (detector.getAligned()) {
                             right(0);
                             left(0);
-                            sleep(400);
+                            sleep(50);
                             detected = true;
-                            right(-.6);
-                            left(-.6);
-                            //  robot.in.setPower(1);
-                            sleep(950);
-
-                            powerDrive(0);
-                            sleep(500);
-                            robot.in.setPower(0);
-                            powerDrive(-.5);
-                            sleep(920);
-                            powerDrive(0);
-                            //robot.wheel.setPosition(.1);
-                            state = State.Turn2;
+                            robot.in.setPower(-1);
+                            robot.extend.setPower(1);
+                            sleep(1000);
+                            retract();
+                            state = State.LanderAlign;
                         }
                     }
                 }break;
 
-                case Turn2: {
-                    rotateDegrees(54);
-                    sleep(500);
-                    powerDrive(.6);
-                    sleep(1800);
-                    powerDrive(-.5);
-                    sleep(500);
+                case LanderAlign: {
+                    rotateDegrees(-2);
+                    robot.g.setPosition(robot.gClosed);
+                    powerDrive(-.3);
+                    sleep(350);
+                   rotateDegrees(-2);
+                    powerDrive(.4);
+                    sleep(140);
+                    leftStrafe(.5);
+                    sleep(160);
                     powerDrive(0);
-                    state = State.AlignWithDepot;
+                    rotateDegrees(-12);
+                   //turnLeft(-.5,120);
+                    robot.lift.setPower(1);
+                    sleep(800);
+                    robot.dump.setPosition(robot.dumpPos);
+                    sleep(800);
+                    robot.dump.setPosition(.2);
+                    sleep(80);
+                    robot.lift.setPower(-.5);
+                    sleep(800);
+                    robot.lift.setPower(0);
+                    robot.extend.setPower(0);
+                    state = State.Turn2;
+
                 }break;
 
+
+                case Turn2: {
+                    rotateDegrees(-2);
+                   powerDrive(.4);
+                   sleep(520);
+                  // leftStrafe(.6);
+                    powerDrive(0);
+                    rotateDegrees(64);
+                    sleep(200);
+                    powerDrive(.65);
+                   sleep(1200);
+                   powerDrive(0);
+                   rotateDegrees(127);
+                   robot.tilt.setPosition(robot.tiltDown);
+                    rightStrafe(.3);
+                    sleep(1000);
+                    powerDrive(0);
+                    sleep(100);
+                    leftStrafe(.4);
+                    sleep(300);
+                    powerDrive(0);
+                    sleep(200);
+                    powerDrive(.4);
+                    sleep(700);
+                    powerDrive(0);
+                    robot.extend.setPower(1);
+                    sleep(1000);
+                    robot.marker.setPosition(.2);
+                    sleep(800);
+                    robot.extend.setPower(-1);
+                    sleep(900);
+                    robot.marker.setPosition(1);
+                    robot.extend.setPower(0);
+                    powerDrive(-.7);
+                    sleep(1200);
+                    powerDrive(0);
+                    state = State.Stop;
+                }break;
                 case AlignWithDepot: {
                 //    robot.tilt.setPosition(.768);
                     rotateDegrees(109);
@@ -319,19 +381,20 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
             }
-        /*the (.5, 1, 0) one should go 35.26° (degrees), according to wolfram alpha
-I solved for arctan(.5/(root(2)/2)) in degrees*/
+            telemetry.addData("status", "loop test... waiting for start");
+            telemetry.update();
 
 
         }
+
     }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     public void powerDrive(double power) {
-        right(-power);
-        left(-power);
+        right(power);
+        left(power);
     }
 
     public void right(double power) {
@@ -347,33 +410,60 @@ I solved for arctan(.5/(root(2)/2)) in degrees*/
         // Sorry. You can't just spin around.
         desiredDegrees %= 360;
 
-        if (2 >= Math.abs(desiredDegrees)) {
+        if (1 >= Math.abs(desiredDegrees)) {
             return;
         }
 
-        double power = 0.11;
+        double power = 0.14;
 
         boolean quit = false;
         while(opModeIsActive() && !quit) {
             robot.encoders();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (angles.firstAngle < desiredDegrees) { // turning right, so heading should get smaller
-                right(power);
-                left(-power);
-            } else { // turning left, so heading gets bigger.
                 right(-power);
                 left(power);
+            } else { // turning left, so heading gets bigger.
+                right(power);
+                left(-power);
             }
             final float headingDiff = Math.abs(desiredDegrees - angles.firstAngle );
 
             telemetry.addData("Headings", String.format("Target", desiredDegrees, angles.firstAngle));
             telemetry.update();
 
-            quit = headingDiff <= 2;
+            quit = headingDiff <= 1;
 
         }
         right(0);
         left(0);
+    }
+
+    public void zeroRobot(){
+        boolean quit = false;
+        double power = .07;
+        while (opModeIsActive() && !quit) {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            if (angles.firstAngle < 0) {
+                right(-power);
+                left(power);
+            } else if (angles.firstAngle > 0) {
+                right(power);
+                left(-power);
+            }
+
+            if (angles.firstAngle == 0 || angles.firstAngle == 1) {
+                quit = true;
+            }
+
+            telemetry.addData("Headings", String.format("Target", 0, angles.firstAngle));
+            telemetry.update();
+
+            if (angles.firstAngle == 1 || angles.firstAngle == 1){
+                quit = true;
+            }
+        }
+        powerDrive(0);
     }
 
     void composeTelemetry() {
@@ -522,6 +612,54 @@ I solved for arctan(.5/(root(2)/2)) in degrees*/
         double BR = robot.leftFrontWheel.getCurrentPosition();
 
         return (int)(FL+FR+BL+BR)/4;
+    }
+
+    public void leftStrafe (double power) {
+        robot.leftFrontWheel.setPower(power);
+        robot.rightFrontWheel.setPower(-power   );
+        robot.leftBackWheel.setPower(-power);
+        robot.rightBackWheel.setPower(power);
+    }
+    public void rightStrafe (double power) {
+        robot.leftFrontWheel.setPower(-power);
+        robot.rightFrontWheel.setPower(power   );
+        robot.leftBackWheel.setPower(power);
+        robot.rightBackWheel.setPower(-power);
+    }
+
+    public void retract() {
+        while (opModeIsActive() &&!touched) {
+            double extendBack = 900;
+            double inStopPos = 530;
+            if (robot.touch.getState()) {
+                robot.in.setPower(-1);
+                robot.extend.setPower(-1);
+                robot.dump.setPosition(.22);
+
+                if (robot.extend.getCurrentPosition() <= extendBack) {
+                    robot.tilt.setPosition(robot.tiltUp);
+                } else if (robot.extend.getCurrentPosition() > extendBack) {
+                    robot.tilt.setPosition(robot.tiltDown);
+                }
+            }
+            if (!robot.touch.getState()) {
+                robot.g.setPosition(robot.gOpen);
+                sleep(300);
+                robot.in.setPower(0);
+                robot.extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                touched = true;
+            }
+        }
+
+    }
+
+    public void turnLeft (double power,long time) {
+        right(-power);
+        left(power);
+        sleep(time);
+        powerDrive(0);
+
     }
 
 }

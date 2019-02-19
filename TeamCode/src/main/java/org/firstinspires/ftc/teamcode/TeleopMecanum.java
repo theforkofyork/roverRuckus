@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -23,7 +24,8 @@ public class TeleopMecanum extends OpMode {
 
 
     private static DcMotor leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel;
-
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
     DcMotor lift;
     DcMotor in;
     DcMotor extend;
@@ -38,16 +40,16 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.01;
+    double gUpKp = 0.005;
     int gUpTolerance = 8;
-    double gDownKp = 0.0025;
+    double gDownKp = 0.0032;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
     double dumpIdle = .21;
-    double dumpPos = .81;
+    double dumpPos = .82;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -56,9 +58,12 @@ public class TeleopMecanum extends OpMode {
     int i = 0;
     int i2 = 0;
 
+    private ElapsedTime     runtime = new ElapsedTime();
 
-    double tiltUp = .26;
-    double tiltDown = .67;
+
+
+    double tiltUp = .435;
+    double tiltDown = .68;
 
     double gClosed = .74;
     double gOpen = .1;
@@ -72,7 +77,7 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void init() {
 
-
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         leftFrontWheel = hardwareMap.dcMotor.get("LF");
         leftBackWheel = hardwareMap.dcMotor.get("LB");
         rightFrontWheel = hardwareMap.dcMotor.get("RF");
@@ -115,6 +120,8 @@ public class TeleopMecanum extends OpMode {
         extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hang.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         telemetry.addData("status", "loop test... waiting for start");
+        pattern = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
+        blinkinLedDriver.setPattern(pattern);
         telemetry.update();
 
 
@@ -122,18 +129,31 @@ public class TeleopMecanum extends OpMode {
 
 
     public void start() {
-        tilt.setPosition(.45);
+        tilt.setPosition(tiltUp);
         g.setPosition(gClosed);
         // tilt.setPosition(tiltDown);
         dump.setPosition(dumpIdle);
         wheel.setPosition(.9);
         //extender.setLiftSetpoint(80);
+        runtime.reset();
     }
 
 
     @Override
     public void loop() {
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
+        if (runtime.seconds() < 90 && !retracting) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
+        } else if (runtime.seconds() > 90 && runtime.seconds() < 105 && !retracting) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
+        } else if (runtime.seconds() > 105 && runtime.seconds() < 120 && !retracting) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.STROBE_RED);
+        } else if (runtime.seconds() > 120 && !retracting) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        }
+
+
+       // Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 
         float Ch1 = gamepad1.right_stick_x;
@@ -189,7 +209,7 @@ public class TeleopMecanum extends OpMode {
         }
 
         if (hanger) {
-            lifter.relinquish();
+           // lifter.relinquish();
          //   extender.relinquish();
         }
 
@@ -262,7 +282,7 @@ public class TeleopMecanum extends OpMode {
                 dump.setPosition(dumpIdle);
                 dumped = false;
             }
-            dump.setPosition(dumpIdle);
+            dump.setPosition(.2);
             if (lifting) {
                 tilt.setPosition(tiltUp);
                 //raise();
@@ -303,11 +323,17 @@ public class TeleopMecanum extends OpMode {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
-            dump.setPosition(.17);
+            dump.setPosition(.22);
 
         }
 
         lifter.update();
+
+        if (retracting && !touch.getState()) {
+            g.setPosition(gOpen);
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+
+        }
 
 
         telemetry.addData("lift pos", lift.getCurrentPosition());
@@ -366,7 +392,7 @@ public class TeleopMecanum extends OpMode {
         dump.setPosition(.25);
 
         //sleep(00);
-        lifter.setLiftSetpoint(665);
+        lifter.setLiftSetpoint(672);
 
     }
 
@@ -375,7 +401,7 @@ public class TeleopMecanum extends OpMode {
         if (retracting) {
             in.setPower(-1);
             if (!touch.getState() && retracting) {
-                g.setPosition(gOpen);
+               // g.setPosition(gOpen);
                 // you only want to set waitTime once otherwise you set it every loop and it's dumb
                 if (!isWaiting)
                     waitTime = System.currentTimeMillis();
@@ -386,11 +412,10 @@ public class TeleopMecanum extends OpMode {
                 extend.setPower(-.9);
 
             }
+
         }
-
-        if (System.currentTimeMillis() - waitTime > 500 && isWaiting) {
-            g.setPosition(gOpen);
-
+        if (System.currentTimeMillis() - waitTime > 400 && isWaiting) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -400,6 +425,7 @@ public class TeleopMecanum extends OpMode {
             isWaiting = false;
             i++;
         }
+
     }
 
 
