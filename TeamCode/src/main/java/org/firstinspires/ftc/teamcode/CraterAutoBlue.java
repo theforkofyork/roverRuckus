@@ -36,6 +36,7 @@ import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.disnodeteam.dogecv.filters.LeviColorFilter;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -190,54 +191,26 @@ public class CraterAutoBlue extends LinearOpMode
         // Set up our telemetry dashboard
 
         composeTelemetry();
+        robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
         telemetry.update();
+        sleep(1000);
+        telemetry.clear();
 
-
-
-
-
-
-      /* try {
-            // axis remap
-            byte AXIS_MAP_CONFIG_BYTE = 0b00011000; //swaps y-z, 0b00100001 is y-x, 0x6 is x-z
-            byte AXIS_MAP_SIGN_BYTE = 0b000; //x, y, z
-
-            //Need to be in CONFIG mode to write to registers
-            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.CONFIG.bVal & 0x0F);
-
-            Thread.sleep(100); //Changing modes requires a delay before doing anything else
-
-            //Write to the AXIS_MAP_CONFIG register
-            imu.write8(BNO055IMU.Register.AXIS_MAP_CONFIG, AXIS_MAP_CONFIG_BYTE & 0x0F);
-
-            //Write to the AXIS_MAP_SIGN register
-            imu.write8(BNO055IMU.Register.AXIS_MAP_SIGN, AXIS_MAP_SIGN_BYTE & 0x0F);
-
-            //Need to change back into the IMU mode to use the gyro
-            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.IMU.bVal & 0x0F);
-
-            Thread.sleep(100); //Changing modes again requires a delay
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } */
-        state = State.Lower;
-        while (opModeIsActive()) {
+        while (opModeIsActive() && !isStopRequested()) {
             telemetry.addData("status", "loop test... waiting for start");
             telemetry.update();
         }
+        state = State.Lower;
 
         waitForStart();
 
 
         while (opModeIsActive()) {
-            telemetry.addData("status", "loop test... waiting for start");
-            telemetry.update();
 
             switch (state) {
 
                 case Lower: {
-                    telemetry.clear();
-                    telemetry.update();
+                    timeoutprevention();
                     robot.tilt.setPosition(robot.tiltDown);
                     robot.hang.setPower(-1);
                     sleep(1500);
@@ -248,6 +221,7 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Turn: {
+                    timeoutprevention();
                     rightStrafe(.35);
                     sleep(200);
                     powerDrive(.2);
@@ -267,7 +241,10 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Detect: {
+                    timeoutprevention();
+
                     while (opModeIsActive() && !detected) {
+                        timeoutprevention();
                         if (!detector.getAligned() && !detected) {
                             right(.12);
                             left(-.12);
@@ -286,6 +263,8 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
                 case LanderAlign: {
+                    timeoutprevention();
+
                     rotateDegrees(-2);
                     robot.g.setPosition(robot.gClosed);
                     powerDrive(-.3);
@@ -314,6 +293,8 @@ public class CraterAutoBlue extends LinearOpMode
 
 
                 case Turn2: {
+                    timeoutprevention();
+
                     rotateDegrees(-2);
                    powerDrive(.4);
                    sleep(520);
@@ -350,39 +331,15 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(0);
                     state = State.Stop;
                 }break;
-                case AlignWithDepot: {
-                //    robot.tilt.setPosition(.768);
-                    rotateDegrees(109);
-                    sleep(200);
-                    powerDrive(.7);
-                    sleep(1500);
-                    powerDrive(0);
-                    robot.in.setPower(-.8);
-                    sleep(1000);
-                    robot.in.setPower(0);
-                    sleep(300);
-                    state = State.Return;
-                }break;
-
-                case Return: {
-                    //rotateDegrees(127);
-                    powerDrive(-.8);
-                    sleep(1440);
-                    powerDrive(0);
-                    robot.wheel.setPosition(0);
-                    state = State.Stop;
-                }break;
 
                 case Stop: {
-
+                    timeoutprevention();
                     right(0);
                     left(0);
                     stop();
                 }break;
 
             }
-            telemetry.addData("status", "loop test... waiting for start");
-            telemetry.update();
 
 
         }
@@ -433,6 +390,7 @@ public class CraterAutoBlue extends LinearOpMode
             telemetry.update();
 
             quit = headingDiff <= 1;
+            timeoutprevention();
 
         }
         right(0);
@@ -662,4 +620,10 @@ public class CraterAutoBlue extends LinearOpMode
 
     }
 
+    public void timeoutprevention() {
+    while (opModeIsActive() && !isStopRequested()) {
+        telemetry.addData("4. status", "loop test... waiting for start");
+        telemetry.update();
+    }
+}
 }
