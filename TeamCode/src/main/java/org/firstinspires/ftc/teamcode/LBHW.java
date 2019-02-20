@@ -167,10 +167,13 @@ public class LBHW {
         pattern = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
         blinkinLedDriver.setPattern(pattern);
         g.setPosition(gClosed);
-       // dump.setPosition(dumpIdle);
+        // dump.setPosition(dumpIdle);
         wheel.setPosition(.9);
         marker.setPosition(1);
         runtime.reset();
+
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
     }
 
 
