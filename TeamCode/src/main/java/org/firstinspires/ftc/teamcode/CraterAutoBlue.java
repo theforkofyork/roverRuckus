@@ -175,6 +175,8 @@ public class CraterAutoBlue extends LinearOpMode
         vuforia.showDebug();
         vuforia.start();
 
+
+
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -190,16 +192,19 @@ public class CraterAutoBlue extends LinearOpMode
         imu.initialize(parameters);
 
         // Set up our telemetry dashboard
-       composeTelemetry();
+        composeTelemetry();
         robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
         telemetry.update();
         state = State.Lower;
 
-        waitForStart();
+        while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("status", "waiting for start command...");
+            telemetry.update();
+        }
+        //waitForStart();
 
 
         while (opModeIsActive()) {
-            timeoutprevention();
             switch (state) {
 
                 case Lower: {
@@ -410,9 +415,7 @@ public class CraterAutoBlue extends LinearOpMode
     }
 
     void composeTelemetry() {
-        while (opModeIsActive()) {
-            telemetry.addData("4. status", "loop test... waiting for start");
-            telemetry.update();
+
             // At the beginning of each telemetry update, grab a bunch of data
             // from the IMU that we will then display in separate lines.
             telemetry.addAction(new Runnable() {
@@ -476,7 +479,6 @@ public class CraterAutoBlue extends LinearOpMode
                                             + gravity.zAccel * gravity.zAccel));
                         }
                     });
-        }
 
     }
 
