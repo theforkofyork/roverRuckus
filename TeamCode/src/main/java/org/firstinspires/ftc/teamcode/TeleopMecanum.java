@@ -40,9 +40,9 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.005;
+    double gUpKp = 0.007;
     int gUpTolerance = 8;
-    double gDownKp = 0.0032;
+    double gDownKp = 0.004;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
@@ -282,7 +282,7 @@ public class TeleopMecanum extends OpMode {
                 dump.setPosition(dumpIdle);
                 dumped = false;
             }
-            dump.setPosition(.2);
+            dump.setPosition(.185);
             if (lifting) {
                 tilt.setPosition(tiltUp);
                 //raise();
@@ -323,7 +323,7 @@ public class TeleopMecanum extends OpMode {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
-            dump.setPosition(.22);
+            dump.setPosition(.18);
 
         }
 

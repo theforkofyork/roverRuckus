@@ -122,6 +122,7 @@ public class CraterAutoBlue extends LinearOpMode
     Orientation angles;
     Acceleration gravity;
     boolean touched = false;
+    boolean init = false;
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -189,28 +190,19 @@ public class CraterAutoBlue extends LinearOpMode
         imu.initialize(parameters);
 
         // Set up our telemetry dashboard
-
-        composeTelemetry();
+       composeTelemetry();
         robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
         telemetry.update();
-        sleep(1000);
-        telemetry.clear();
-
-        while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("status", "loop test... waiting for start");
-            telemetry.update();
-        }
         state = State.Lower;
 
         waitForStart();
 
 
         while (opModeIsActive()) {
-
+            timeoutprevention();
             switch (state) {
 
                 case Lower: {
-                    timeoutprevention();
                     robot.tilt.setPosition(robot.tiltDown);
                     robot.hang.setPower(-1);
                     sleep(1500);
@@ -221,7 +213,6 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Turn: {
-                    timeoutprevention();
                     rightStrafe(.35);
                     sleep(200);
                     powerDrive(.2);
@@ -241,10 +232,7 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Detect: {
-                    timeoutprevention();
-
                     while (opModeIsActive() && !detected) {
-                        timeoutprevention();
                         if (!detector.getAligned() && !detected) {
                             right(.12);
                             left(-.12);
@@ -263,7 +251,6 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
                 case LanderAlign: {
-                    timeoutprevention();
 
                     rotateDegrees(-2);
                     robot.g.setPosition(robot.gClosed);
@@ -293,7 +280,6 @@ public class CraterAutoBlue extends LinearOpMode
 
 
                 case Turn2: {
-                    timeoutprevention();
 
                     rotateDegrees(-2);
                    powerDrive(.4);
@@ -333,7 +319,6 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
                 case Stop: {
-                    timeoutprevention();
                     right(0);
                     left(0);
                     stop();
@@ -425,62 +410,73 @@ public class CraterAutoBlue extends LinearOpMode
     }
 
     void composeTelemetry() {
+        while (opModeIsActive()) {
+            telemetry.addData("4. status", "loop test... waiting for start");
+            telemetry.update();
+            // At the beginning of each telemetry update, grab a bunch of data
+            // from the IMU that we will then display in separate lines.
+            telemetry.addAction(new Runnable() {
+                @Override
+                public void run() {
+                    // Acquiring the angles is relatively expensive; we don't want
+                    // to do that in each of the three items that need that info, as that's
+                    // three times the necessary expense.
+                    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+                    gravity = imu.getGravity();
+                }
+            });
 
-        // At the beginning of each telemetry update, grab a bunch of data
-        // from the IMU that we will then display in separate lines.
-        telemetry.addAction(new Runnable() { @Override public void run()
-        {
-            // Acquiring the angles is relatively expensive; we don't want
-            // to do that in each of the three items that need that info, as that's
-            // three times the necessary expense.
-            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            gravity  = imu.getGravity();
+            telemetry.addLine()
+                    .addData("status", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return imu.getSystemStatus().toShortString();
+                        }
+                    })
+                    .addData("calib", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return imu.getCalibrationStatus().toString();
+                        }
+                    });
+
+            telemetry.addLine()
+                    .addData("heading", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return formatAngle(angles.angleUnit, angles.firstAngle);
+                        }
+                    })
+                    .addData("roll", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return formatAngle(angles.angleUnit, angles.secondAngle);
+                        }
+                    })
+                    .addData("pitch", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return formatAngle(angles.angleUnit, angles.thirdAngle);
+                        }
+                    });
+
+            telemetry.addLine()
+                    .addData("grvty", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return gravity.toString();
+                        }
+                    })
+                    .addData("mag", new Func<String>() {
+                        @Override
+                        public String value() {
+                            return String.format(Locale.getDefault(), "%.3f",
+                                    Math.sqrt(gravity.xAccel * gravity.xAccel
+                                            + gravity.yAccel * gravity.yAccel
+                                            + gravity.zAccel * gravity.zAccel));
+                        }
+                    });
         }
-        });
-
-        telemetry.addLine()
-                .addData("status", new Func<String>() {
-                    @Override public String value() {
-                        return imu.getSystemStatus().toShortString();
-                    }
-                })
-                .addData("calib", new Func<String>() {
-                    @Override public String value() {
-                        return imu.getCalibrationStatus().toString();
-                    }
-                });
-
-        telemetry.addLine()
-                .addData("heading", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.firstAngle);
-                    }
-                })
-                .addData("roll", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.secondAngle);
-                    }
-                })
-                .addData("pitch", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.thirdAngle);
-                    }
-                });
-
-        telemetry.addLine()
-                .addData("grvty", new Func<String>() {
-                    @Override public String value() {
-                        return gravity.toString();
-                    }
-                })
-                .addData("mag", new Func<String>() {
-                    @Override public String value() {
-                        return String.format(Locale.getDefault(), "%.3f",
-                                Math.sqrt(gravity.xAccel*gravity.xAccel
-                                        + gravity.yAccel*gravity.yAccel
-                                        + gravity.zAccel*gravity.zAccel));
-                    }
-                });
 
     }
 
@@ -621,7 +617,7 @@ public class CraterAutoBlue extends LinearOpMode
     }
 
     public void timeoutprevention() {
-    while (opModeIsActive() && !isStopRequested()) {
+    while (opModeIsActive()) {
         telemetry.addData("4. status", "loop test... waiting for start");
         telemetry.update();
     }
