@@ -317,7 +317,7 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(0);
                     robot.extend.setPower(1);
                     sleep(1000);
-                    robot.marker.setPosition(.2);
+                    robot.marker.setPosition(.4);
                     sleep(800);
                     robot.extend.setPower(-1);
                     sleep(900);

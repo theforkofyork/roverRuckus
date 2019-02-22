@@ -29,6 +29,7 @@ public class TeleopMecanum extends OpMode {
     DcMotor lift;
     DcMotor in;
     DcMotor extend;
+    Servo marker;
     //  DcMotor lift;
     Servo dump;
     Servo g;
@@ -49,7 +50,7 @@ public class TeleopMecanum extends OpMode {
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
     double dumpIdle = .21;
-    double dumpPos = .82;
+    double dumpPos = .8;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -62,8 +63,8 @@ public class TeleopMecanum extends OpMode {
 
 
 
-    double tiltUp = .435;
-    double tiltDown = .68;
+    double tiltUp = .4;
+    double tiltDown = 0;
 
     double gClosed = .74;
     double gOpen = .1;
@@ -85,7 +86,7 @@ public class TeleopMecanum extends OpMode {
         lift = hardwareMap.dcMotor.get("lift");
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         in = hardwareMap.dcMotor.get("in");
-        in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       // in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         extend = hardwareMap.dcMotor.get("extend");
         // tilt = hardwareMap.servo.get("tilt");
         g = hardwareMap.servo.get("g");
@@ -94,6 +95,7 @@ public class TeleopMecanum extends OpMode {
         wheel = hardwareMap.servo.get("wheel");
         tilt = hardwareMap.get(ServoImplEx.class, "tilt");
         touch = hardwareMap.get(DigitalChannel.class, "touch");
+        marker = hardwareMap.servo.get("marker");
 
 
         touch.setMode(DigitalChannel.Mode.INPUT);
@@ -136,6 +138,7 @@ public class TeleopMecanum extends OpMode {
         wheel.setPosition(.9);
         //extender.setLiftSetpoint(80);
         runtime.reset();
+        marker.setPosition(1);
     }
 
 
@@ -399,7 +402,7 @@ public class TeleopMecanum extends OpMode {
     public void retract() {
 
         if (retracting) {
-            in.setPower(-1);
+            in.setPower(-.65);
             if (!touch.getState() && retracting) {
                // g.setPosition(gOpen);
                 // you only want to set waitTime once otherwise you set it every loop and it's dumb
@@ -409,7 +412,7 @@ public class TeleopMecanum extends OpMode {
             }
             else if (i < 1) {
                 //extender.setLiftSetpoint(-300);
-                extend.setPower(-.9);
+                extend.setPower(-1);
 
             }
 

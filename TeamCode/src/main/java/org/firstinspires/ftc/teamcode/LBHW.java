@@ -93,8 +93,8 @@ public class LBHW {
 
 
 
-    double tiltUp = .435;
-    double tiltDown = .68;
+    double tiltUp = .4;
+    double tiltDown = 0;
 
     double gClosed = .74;
     double gOpen = .1;
