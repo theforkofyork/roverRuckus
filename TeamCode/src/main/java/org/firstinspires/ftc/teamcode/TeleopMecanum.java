@@ -72,6 +72,9 @@ public class TeleopMecanum extends OpMode {
     boolean isWaiting = false;
     long waitTime = 0;
 
+    boolean isWaiting2  = false;
+    long waitTime2 = 0;
+
 
     ServoImplEx tilt;
 
@@ -282,34 +285,29 @@ public class TeleopMecanum extends OpMode {
         if (gamepad1.left_bumper && !hanger) {
 
             if (dumped) {
-                dump.setPosition(dumpIdle);
+                dump.setPosition(.185);
                 dumped = false;
+                if (!isWaiting2) {
+                    waitTime2 = System.currentTimeMillis();
+                    isWaiting2 = true;
+                }
+
             }
-            dump.setPosition(.185);
+
             if (lifting) {
                 tilt.setPosition(tiltUp);
-                //raise();
                 g.setPosition(gClosed);
                 extend.setPower(1);
-                //sleep(100);
                 lifting = false;
             }
             if (lift.getCurrentPosition() <= 10) {
                 lifter.relinquish();
             }
-            lifter.setLiftSetpoint(0);
+            if (System.currentTimeMillis() - waitTime2 > 200 && isWaiting2) {
+                lifter.setLiftSetpoint(0);
+                isWaiting2 = false;
+            }
         } else if (gamepad1.left_trigger > .25 && !hanger) {
-            //dump.setPosition(.1);
-           /*if(!lifting) {
-               lifting = true;
-               new Thread() {
-                   @Override
-                   public void run() {
-                       lift();
-                       lifting = false;
-                   }
-               }.start();
-           } */
             if (lifting && !dumped) {
                 dump.setPosition(dumpIdle);
             }
@@ -402,9 +400,9 @@ public class TeleopMecanum extends OpMode {
     public void retract() {
 
         if (retracting) {
-            in.setPower(-.65);
+            in.setPower(-.5);
             if (!touch.getState() && retracting) {
-               // g.setPosition(gOpen);
+                g.setPosition(gOpen);
                 // you only want to set waitTime once otherwise you set it every loop and it's dumb
                 if (!isWaiting)
                     waitTime = System.currentTimeMillis();
