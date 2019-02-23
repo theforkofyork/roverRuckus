@@ -43,7 +43,7 @@ public class TeleopMecanum extends OpMode {
     boolean dumping;
     double gUpKp = 0.007;
     int gUpTolerance = 8;
-    double gDownKp = 0.004;
+    double gDownKp = 0.003;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
@@ -63,17 +63,19 @@ public class TeleopMecanum extends OpMode {
 
 
 
-    double tiltUp = .4;
+    double tiltUp = .42;
     double tiltDown = 0;
 
     double gClosed = .74;
-    double gOpen = .1;
+    double gOpen = .11;
 
     boolean isWaiting = false;
     long waitTime = 0;
 
     boolean isWaiting2  = false;
     long waitTime2 = 0;
+
+    boolean lowering = false;
 
 
     ServoImplEx tilt;
@@ -283,16 +285,8 @@ public class TeleopMecanum extends OpMode {
 
 
         if (gamepad1.left_bumper && !hanger) {
-
-            if (dumped) {
-                dump.setPosition(.185);
-                dumped = false;
-                if (!isWaiting2) {
-                    waitTime2 = System.currentTimeMillis();
-                    isWaiting2 = true;
-                }
-
-            }
+            lowering = true;
+            dump.setPosition(.185);
 
             if (lifting) {
                 tilt.setPosition(tiltUp);
@@ -302,17 +296,22 @@ public class TeleopMecanum extends OpMode {
             }
             if (lift.getCurrentPosition() <= 10) {
                 lifter.relinquish();
+                lowering = false;
             }
-            if (System.currentTimeMillis() - waitTime2 > 200 && isWaiting2) {
+           if (!dumped) {
                 lifter.setLiftSetpoint(0);
-                isWaiting2 = false;
-            }
+           }
         } else if (gamepad1.left_trigger > .25 && !hanger) {
             if (lifting && !dumped) {
                 dump.setPosition(dumpIdle);
             }
             lifting = true;
+            lowering = false;
             lift();
+        }
+
+        if (lowering && dumped) {
+           lowerLift();
         }
 
 
@@ -400,8 +399,9 @@ public class TeleopMecanum extends OpMode {
     public void retract() {
 
         if (retracting) {
-            in.setPower(-.5);
+            in.setPower(-.8);
             if (!touch.getState() && retracting) {
+                in.setPower(-1);
                 g.setPosition(gOpen);
                 // you only want to set waitTime once otherwise you set it every loop and it's dumb
                 if (!isWaiting)
@@ -415,7 +415,7 @@ public class TeleopMecanum extends OpMode {
             }
 
         }
-        if (System.currentTimeMillis() - waitTime > 400 && isWaiting) {
+        if (System.currentTimeMillis() - waitTime > 700 && isWaiting && !lifting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -437,6 +437,24 @@ public class TeleopMecanum extends OpMode {
             Thread.sleep((long) time);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+        }
+    }
+    public void lowerLift() {
+        if (dumped) {
+            dump.setPosition(.185);
+
+            if (!isWaiting2) {
+                waitTime2 = System.currentTimeMillis();
+                isWaiting2 = true;
+            }
+            if (System.currentTimeMillis() - waitTime2 > 200 && isWaiting2) {
+                lifter.setLiftSetpoint(0);
+                isWaiting2 = false;
+                dumped = false;
+                lifting = false;
+                lowering = false;
+            }
+
         }
     }
 
