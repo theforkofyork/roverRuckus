@@ -145,6 +145,7 @@ public class CraterAutoBlue extends LinearOpMode
     @Override
     public void runOpMode() {
 
+
         robot.init(hardwareMap);
 
         webcamName = hardwareMap.get(WebcamName.class, "cam");
@@ -189,6 +190,7 @@ public class CraterAutoBlue extends LinearOpMode
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
         robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
+        //robot.hang.setPower(.05);
 
         // Set up our telemetry dashboard
         composeTelemetry();
@@ -227,11 +229,11 @@ public class CraterAutoBlue extends LinearOpMode
 
                 case Turn: {
                     rightStrafe(.35);
-                    sleep(200);
+                    sleep(400);
                     powerDrive(.2);
                     sleep(360);
-                    leftStrafe(.2);
-                    sleep(200);
+                    leftStrafe(.4);
+                    sleep(400);
                     powerDrive(0);
                     right(-.3);
                     left(.3);
@@ -274,12 +276,12 @@ public class CraterAutoBlue extends LinearOpMode
                     leftStrafe(.5);
                     sleep(160);
                     powerDrive(0);
-                    rotateDegrees(-12);
+                    rotateDegrees(-18);
                     //turnLeft(-.5,120);
                     robot.lift.setPower(1);
                     sleep(800);
                     robot.dump.setPosition(robot.dumpPos);
-                    sleep(800);
+                    sleep(900);
                     robot.dump.setPosition(.2);
                     sleep(80);
                     robot.lift.setPower(-.5);
@@ -297,7 +299,7 @@ public class CraterAutoBlue extends LinearOpMode
                     sleep(520);
                     // leftStrafe(.6);
                     powerDrive(0);
-                    rotateDegrees(64);
+                    rotateDegrees(66);
                     sleep(200);
                     powerDrive(.65);
                     sleep(1200);
@@ -305,7 +307,7 @@ public class CraterAutoBlue extends LinearOpMode
                     rotateDegrees(127);
                     robot.tilt.setPosition(robot.tiltDown);
                     rightStrafe(.3);
-                    sleep(1000);
+                    sleep(600);
                     powerDrive(0);
                     sleep(100);
                     leftStrafe(.4);

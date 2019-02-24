@@ -286,6 +286,7 @@ public class TeleopMecanum extends OpMode {
 
         if (gamepad1.left_bumper && !hanger) {
             lowering = true;
+            retracting = false;
             dump.setPosition(.185);
 
             if (lifting) {
@@ -415,7 +416,7 @@ public class TeleopMecanum extends OpMode {
             }
 
         }
-        if (System.currentTimeMillis() - waitTime > 700 && isWaiting && !lifting) {
+        if (System.currentTimeMillis() - waitTime > 400 && isWaiting && !lifting && retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
