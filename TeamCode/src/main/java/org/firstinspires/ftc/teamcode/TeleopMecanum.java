@@ -33,6 +33,7 @@ public class TeleopMecanum extends OpMode {
     //  DcMotor lift;
     Servo dump;
     Servo g;
+    Servo block;
     DigitalChannel touch;
     //Servo tilt;
     Servo wheel;
@@ -101,6 +102,7 @@ public class TeleopMecanum extends OpMode {
         tilt = hardwareMap.get(ServoImplEx.class, "tilt");
         touch = hardwareMap.get(DigitalChannel.class, "touch");
         marker = hardwareMap.servo.get("marker");
+        block = hardwareMap.servo.get("block");
 
 
         touch.setMode(DigitalChannel.Mode.INPUT);
@@ -144,6 +146,7 @@ public class TeleopMecanum extends OpMode {
         //extender.setLiftSetpoint(80);
         runtime.reset();
         marker.setPosition(1);
+        block.setPosition(1);
     }
 
 
@@ -303,6 +306,7 @@ public class TeleopMecanum extends OpMode {
                 lifter.setLiftSetpoint(0);
            }
         } else if (gamepad1.left_trigger > .25 && !hanger) {
+            retracting = false;
             if (lifting && !dumped) {
                 dump.setPosition(dumpIdle);
             }
@@ -416,7 +420,7 @@ public class TeleopMecanum extends OpMode {
             }
 
         }
-        if (System.currentTimeMillis() - waitTime > 400 && isWaiting && !lifting && retracting) {
+        if (System.currentTimeMillis() - waitTime > 600 && isWaiting && !lifting && retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

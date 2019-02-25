@@ -64,6 +64,7 @@ public class LBHW {
     Servo dump;
     Servo g;
     Servo marker;
+    Servo block;
     DigitalChannel touch;
     //Servo tilt;
     Servo wheel;
@@ -136,6 +137,7 @@ public class LBHW {
         tilt = hwMap.get(ServoImplEx.class, "tilt");
         touch = hwMap.get(DigitalChannel.class, "touch");
         marker = hwMap.servo.get("marker");
+        block = hwMap.servo.get("block");
 
 
         touch.setMode(DigitalChannel.Mode.INPUT);
@@ -171,6 +173,7 @@ public class LBHW {
         wheel.setPosition(.9);
         marker.setPosition(1);
         runtime.reset();
+        block.setPosition(0);
 
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();

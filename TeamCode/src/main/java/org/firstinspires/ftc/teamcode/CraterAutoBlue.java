@@ -219,6 +219,9 @@ public class CraterAutoBlue extends LinearOpMode
                     telemetry.clear();
                     telemetry.update();
                     robot.tilt.setPosition(robot.tiltDown);
+                    robot.hang.setPower(1);
+                    robot.block.setPosition(1);
+                    sleep(150);
                     robot.hang.setPower(-1);
                     sleep(1500);
                     robot.hang.setPower(0);
