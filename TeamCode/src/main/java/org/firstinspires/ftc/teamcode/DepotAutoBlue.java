@@ -90,9 +90,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Crater Auto Blue", group="Blue")
+@Autonomous(name="Depot Auto Blue", group="Blue")
 
-public class CraterAutoBlue extends LinearOpMode
+public class DepotAutoBlue extends LinearOpMode
 
 {
     enum State {
@@ -109,6 +109,7 @@ public class CraterAutoBlue extends LinearOpMode
         LanderScore,
         LanderAlign,
         cycle,
+        teamMarker,
 
     }
     LBHW robot = new LBHW();
@@ -236,7 +237,7 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(.2);
                     sleep(360);
                     leftStrafe(.4);
-                    sleep(00);
+                    sleep(300);
                     powerDrive(0);
                     right(-.3);
                     left(.3);
@@ -245,9 +246,27 @@ public class CraterAutoBlue extends LinearOpMode
                     robot.hang.setPower(1);
                     sleep(600);
                     robot.hang.setPower(0);
-                    state = State.Detect;
+                    state = State.teamMarker;
                 }
                 break;
+
+                case teamMarker: {
+                    powerDrive(.3);
+                    sleep(400);
+                    powerDrive(0);
+                    robot.tilt.setPosition(robot.tiltUp);
+                    robot.extend.setPower(1);
+                    sleep(500);
+                    robot.extend.setPower(0);
+                    robot.marker.setPosition(.5);
+                    simpleRetract();
+                    robot.marker.setPosition(1);
+                    powerDrive(-.5);
+                    sleep(400);
+                    powerDrive(0);
+                    robot.tilt.setPosition(robot.tiltDown);
+                    state = State.Detect;
+                }
 
                 case Detect: {
                     while (opModeIsActive() && !detected) {
@@ -263,80 +282,39 @@ public class CraterAutoBlue extends LinearOpMode
                             robot.extend.setPower(1);
                             sleep(1000);
                             retract();
-                            state = State.LanderAlign;
+                            state = State.Turn2;
                         }
                     }
                 }break;
 
-                case LanderAlign: {
-                    rotateDegrees(-2);
-                    robot.g.setPosition(robot.gClosed);
-                    powerDrive(-.3);
-                    sleep(350);
-                    rotateDegrees(-2);
-                    powerDrive(.4);
-                    sleep(140);
-                    leftStrafe(.5);
-                    sleep(160);
-                    powerDrive(0);
-                    rotateDegrees(-18);
-                    //turnLeft(-.5,120);
-                    robot.lift.setPower(1);
-                    sleep(800);
-                    robot.dump.setPosition(robot.dumpPos);
-                    sleep(900);
-                    robot.dump.setPosition(.2);
-                    sleep(80);
-                    robot.lift.setPower(-.5);
-                    sleep(800);
-                    robot.lift.setPower(0);
-                    robot.extend.setPower(0);
-                    state = State.Turn2;
-
-                }break;
 
 
                 case Turn2: {
-                    rotateDegrees(-2);
+                    robot.in.setPower(0);
                     powerDrive(.4);
-                    sleep(520);
-                    // leftStrafe(.6);
+                    sleep(500);
                     powerDrive(0);
-                    rotateDegrees(66);
-                    sleep(200);
-                    powerDrive(.65);
-                    sleep(1200);
+                    rotateDegrees(60);
+                    powerDrive(.6);
+                    sleep(800);
                     powerDrive(0);
                     rotateDegrees(127);
-                    robot.tilt.setPosition(robot.tiltDown);
                     rightStrafe(.3);
                     sleep(600);
                     powerDrive(0);
-                    sleep(100);
-                    leftStrafe(.4);
-                    sleep(300);
-                    powerDrive(0);
-                    sleep(200);
+                    sleep(50);
                     powerDrive(.4);
-                    sleep(700);
+                    sleep(200);
                     powerDrive(0);
+                    sleep(100);
                     robot.extend.setPower(1);
-                    sleep(1000);
-                    robot.marker.setPosition(.4);
-                    sleep(800);
-                    robot.extend.setPower(-1);
-                    sleep(900);
-                    robot.marker.setPosition(1);
+                    sleep(600);
                     robot.extend.setPower(0);
-                    powerDrive(-.7);
-                    sleep(1200);
-                    powerDrive(0);
                     state = State.Stop;
                 }break;
 
 
                 case Stop: {
-
                     right(0);
                     left(0);
                     stop();
@@ -624,4 +602,17 @@ public class CraterAutoBlue extends LinearOpMode
 
     }
 
+    public void simpleRetract(){
+        while(opModeIsActive() && !touched) {
+            if (robot.touch.getState()) {
+                robot.extend.setPower(-1);
+            }
+            if (!robot.touch.getState()) {
+                robot.extend.setPower(0);
+                robot.extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                touched = true;
+            }
+        }
+    }
 }

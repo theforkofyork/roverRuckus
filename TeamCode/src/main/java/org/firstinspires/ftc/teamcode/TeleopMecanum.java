@@ -42,7 +42,7 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.007;
+    double gUpKp = 0.003;
     int gUpTolerance = 8;
     double gDownKp = 0.003;
     int gDownTolerance = 4;
@@ -51,7 +51,7 @@ public class TeleopMecanum extends OpMode {
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
     double dumpIdle = .21;
-    double dumpPos = .8;
+    double dumpPos = .814;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -64,7 +64,7 @@ public class TeleopMecanum extends OpMode {
 
 
 
-    double tiltUp = .42;
+    double tiltUp = .43;
     double tiltDown = 0;
 
     double gClosed = .74;
@@ -356,8 +356,6 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void stop() {
         lifter.close();
-        //extender.close();
-        //   tilt.getController().pwmDisable();
         tilt.setPwmDisable();
     }
 
@@ -395,9 +393,7 @@ public class TeleopMecanum extends OpMode {
         in.setPower(0);
         tilt.setPosition(tiltDown);
         dump.setPosition(.25);
-
-        //sleep(00);
-        lifter.setLiftSetpoint(672);
+        lifter.setLiftSetpoint(665);
 
     }
 
@@ -408,13 +404,11 @@ public class TeleopMecanum extends OpMode {
             if (!touch.getState() && retracting) {
                 in.setPower(-1);
                 g.setPosition(gOpen);
-                // you only want to set waitTime once otherwise you set it every loop and it's dumb
                 if (!isWaiting)
                     waitTime = System.currentTimeMillis();
-                isWaiting = true; // basically prevent this if from running again until it's done
+                isWaiting = true;
             }
             else if (i < 1) {
-                //extender.setLiftSetpoint(-300);
                 extend.setPower(-1);
 
             }
@@ -425,9 +419,7 @@ public class TeleopMecanum extends OpMode {
             in.setPower(0);
             extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            //extender.relinquish();
             retracting = false;
-            // reset isWaiting so this whole thing can run again
             isWaiting = false;
             i++;
         }
