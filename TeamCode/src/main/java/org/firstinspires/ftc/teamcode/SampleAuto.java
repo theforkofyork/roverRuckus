@@ -36,10 +36,12 @@ import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.disnodeteam.dogecv.filters.LeviColorFilter;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -88,7 +90,7 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Sample", group="Sample")
+@Autonomous(name="Sample Auto", group="Sample")
 
 public class SampleAuto extends LinearOpMode
 
@@ -104,6 +106,9 @@ public class SampleAuto extends LinearOpMode
         Return,
         AlignWithDepot,
         Stop,
+        LanderScore,
+        LanderAlign,
+        cycle,
 
     }
     LBHW robot = new LBHW();
@@ -116,7 +121,7 @@ public class SampleAuto extends LinearOpMode
     BNO055IMU imu;
     Orientation angles;
     Acceleration gravity;
-
+    boolean touched = false;
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -134,10 +139,12 @@ public class SampleAuto extends LinearOpMode
     WebcamName webcamName;
     List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
+
     GoldAlignDetector detector;
 
     @Override
     public void runOpMode() {
+
 
         robot.init(hardwareMap);
 
@@ -179,8 +186,11 @@ public class SampleAuto extends LinearOpMode
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
+        telemetry.addData("imu init","waiting");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
+        robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
+        //robot.hang.setPower(.05);
 
         // Set up our telemetry dashboard
         composeTelemetry();
@@ -189,62 +199,52 @@ public class SampleAuto extends LinearOpMode
 
 
 
-
-
-      /* try {
-            // axis remap
-            byte AXIS_MAP_CONFIG_BYTE = 0b00011000; //swaps y-z, 0b00100001 is y-x, 0x6 is x-z
-            byte AXIS_MAP_SIGN_BYTE = 0b000; //x, y, z
-
-            //Need to be in CONFIG mode to write to registers
-            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.CONFIG.bVal & 0x0F);
-
-            Thread.sleep(100); //Changing modes requires a delay before doing anything else
-
-            //Write to the AXIS_MAP_CONFIG register
-            imu.write8(BNO055IMU.Register.AXIS_MAP_CONFIG, AXIS_MAP_CONFIG_BYTE & 0x0F);
-
-            //Write to the AXIS_MAP_SIGN register
-            imu.write8(BNO055IMU.Register.AXIS_MAP_SIGN, AXIS_MAP_SIGN_BYTE & 0x0F);
-
-            //Need to change back into the IMU mode to use the gyro
-            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.IMU.bVal & 0x0F);
-
-            Thread.sleep(100); //Changing modes again requires a delay
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } */
         state = State.Lower;
+        while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("status", "waiting for start command...");
+            telemetry.update();
+        }
 
-        waitForStart();
+
+        //  waitForStart();
 
 
         while (opModeIsActive()) {
+            telemetry.addData("status", "loop test... waiting for start");
+            telemetry.update();
 
             switch (state) {
 
                 case Lower: {
-                    robot.tilt.setPosition(.768);
+                    telemetry.clear();
+                    telemetry.update();
+                    robot.tilt.setPosition(robot.tiltDown);
+                    robot.hang.setPower(1);
+                    robot.block.setPosition(1);
+                    sleep(150);
                     robot.hang.setPower(-1);
-                    sleep(2000);
+                    sleep(1500);
                     robot.hang.setPower(0);
                     state = State.Turn;
+
                 }
                 break;
 
                 case Turn: {
-                    powerDrive(.34);
+                    rightStrafe(.35);
+                    sleep(300);
+                    powerDrive(.2);
                     sleep(360);
-                    right(.3);
-                    left(-.3);
-                    sleep(600);
+                    leftStrafe(.4);
+                    sleep(200);
+                    powerDrive(0);
+                    right(-.3);
+                    left(.3);
+                    sleep(700);
                     powerDrive(0);
                     robot.hang.setPower(1);
-                    sleep(1500);
+                    sleep(600);
                     robot.hang.setPower(0);
-                    //sleep(1000);
-                    powerDrive(0);
-                    sleep(300);
                     state = State.Detect;
                 }
                 break;
@@ -252,83 +252,46 @@ public class SampleAuto extends LinearOpMode
                 case Detect: {
                     while (opModeIsActive() && !detected) {
                         if (!detector.getAligned() && !detected) {
-                            right(-.05);
-                            left(.05);
+                            right(.12);
+                            left(-.12);
                         } else if (detector.getAligned()) {
                             right(0);
                             left(0);
-                            sleep(400);
+                            sleep(50);
                             detected = true;
-                            right(-.6);
-                            left(-.6);
-                            //  robot.in.setPower(1);
-                            sleep(950);
-                            powerDrive(0);
-                            sleep(500);
+                            robot.in.setPower(-1);
+                            robot.extend.setPower(1);
+                            sleep(900);
+                            robot.extend.setPower(0);
                             robot.in.setPower(0);
-                            powerDrive(-.5);
-                            sleep(960);
-                            powerDrive(0);
-                            //robot.wheel.setPosition(.1);
                             state = State.Stop;
                         }
                     }
                 }break;
 
-                case Turn2: {
-                    rotateDegrees(50);
-                    sleep(500);
-                    powerDrive(.5);
-                    sleep(2000);
-                    powerDrive(-.5);
-                    sleep(500);
-                    powerDrive(0);
-                    state = State.AlignWithDepot;
-                }break;
-
-                case AlignWithDepot: {
-                   // robot.tilt.setPosition(.66);
-                    rotateDegrees(109);
-                    sleep(200);
-                    powerDrive(.7);
-                    sleep(1500);
-                    powerDrive(0);
-                    robot.in.setPower(-.8);
-                    sleep(1000);
-                    robot.in.setPower(0);
-                    sleep(300);
-                    state = State.Return;
-                }break;
-
-                case Return: {
-                    //rotateDegrees(127);
-                    powerDrive(-.8);
-                    sleep(1430);
-                    powerDrive(0);
-                    robot.wheel.setPosition(0);
-                    state = State.Stop;
-                }break;
 
                 case Stop: {
+
                     right(0);
                     left(0);
                     stop();
                 }break;
 
             }
-        /*the (.5, 1, 0) one should go 35.26° (degrees), according to wolfram alpha
-I solved for arctan(.5/(root(2)/2)) in degrees*/
+            telemetry.addData("status", "loop test... waiting for start");
+            telemetry.update();
 
 
         }
+
     }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     public void powerDrive(double power) {
-        right(-power);
-        left(-power);
+        right(power);
+        left(power);
     }
 
     public void right(double power) {
@@ -344,33 +307,60 @@ I solved for arctan(.5/(root(2)/2)) in degrees*/
         // Sorry. You can't just spin around.
         desiredDegrees %= 360;
 
-        if (2 >= Math.abs(desiredDegrees)) {
+        if (1 >= Math.abs(desiredDegrees)) {
             return;
         }
 
-        double power = 0.11;
+        double power = 0.14;
 
         boolean quit = false;
         while(opModeIsActive() && !quit) {
             robot.encoders();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (angles.firstAngle < desiredDegrees) { // turning right, so heading should get smaller
-                right(power);
-                left(-power);
-            } else { // turning left, so heading gets bigger.
                 right(-power);
                 left(power);
+            } else { // turning left, so heading gets bigger.
+                right(power);
+                left(-power);
             }
             final float headingDiff = Math.abs(desiredDegrees - angles.firstAngle );
 
             telemetry.addData("Headings", String.format("Target", desiredDegrees, angles.firstAngle));
             telemetry.update();
 
-            quit = headingDiff <= 2;
+            quit = headingDiff <= 1;
 
         }
         right(0);
         left(0);
+    }
+
+    public void zeroRobot(){
+        boolean quit = false;
+        double power = .07;
+        while (opModeIsActive() && !quit) {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            if (angles.firstAngle < 0) {
+                right(-power);
+                left(power);
+            } else if (angles.firstAngle > 0) {
+                right(power);
+                left(-power);
+            }
+
+            if (angles.firstAngle == 0 || angles.firstAngle == 1) {
+                quit = true;
+            }
+
+            telemetry.addData("Headings", String.format("Target", 0, angles.firstAngle));
+            telemetry.update();
+
+            if (angles.firstAngle == 1 || angles.firstAngle == 1){
+                quit = true;
+            }
+        }
+        powerDrive(0);
     }
 
     void composeTelemetry() {
@@ -440,4 +430,133 @@ I solved for arctan(.5/(root(2)/2)) in degrees*/
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
+    public void rightGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = robot.rightFrontWheel.getCurrentPosition();
+        target %= 360;
+        while (startCount - encoderCounts>robot.rightFrontWheel.getCurrentPosition() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power  + (currentHeading - target) / speed;
+            RL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power - (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(-FL_speed);
+            robot.rightFrontWheel.setPower(FR_speed);
+            robot.leftBackWheel.setPower(RL_speed);
+            robot.rightBackWheel.setPower(-RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }
+    public void leftGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = getStrafeEncoderAverage();
+        target %= 360;
+        while (startCount - encoderCounts<getStrafeEncoderAverage() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power - (currentHeading - target) / speed;
+            RL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power + (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(FL_speed);
+            robot.rightFrontWheel.setPower(-FR_speed);
+            robot.leftBackWheel.setPower(-RL_speed);
+            robot.rightBackWheel.setPower(RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }   public int getStrafeEncoderAverage(){
+    double FL = Math.abs(robot.rightFrontWheel.getCurrentPosition());
+    double FR = Math.abs(robot.rightBackWheel.getCurrentPosition());
+    double BL = Math.abs(robot.leftBackWheel.getCurrentPosition());
+    double BR = Math.abs(robot.leftFrontWheel.getCurrentPosition());
+
+    return (int)(FL+FR+BL+BR)/4;
+}
+    public int getFwdEncoderAverage(){
+        double FL = robot.rightFrontWheel.getCurrentPosition();
+        double FR = robot.rightBackWheel.getCurrentPosition();
+        double BL = robot.leftBackWheel.getCurrentPosition();
+        double BR = robot.leftFrontWheel.getCurrentPosition();
+
+        return (int)(FL+FR+BL+BR)/4;
+    }
+
+    public void leftStrafe (double power) {
+        robot.leftFrontWheel.setPower(power);
+        robot.rightFrontWheel.setPower(-power   );
+        robot.leftBackWheel.setPower(-power);
+        robot.rightBackWheel.setPower(power);
+    }
+    public void rightStrafe (double power) {
+        robot.leftFrontWheel.setPower(-power);
+        robot.rightFrontWheel.setPower(power   );
+        robot.leftBackWheel.setPower(power);
+        robot.rightBackWheel.setPower(-power);
+    }
+
+    public void retract() {
+        while (opModeIsActive() &&!touched) {
+            double extendBack = 900;
+            double inStopPos = 530;
+            if (robot.touch.getState()) {
+                robot.in.setPower(-1);
+                robot.extend.setPower(-1);
+                robot.dump.setPosition(.22);
+
+                if (robot.extend.getCurrentPosition() <= extendBack) {
+                    robot.tilt.setPosition(robot.tiltUp);
+                } else if (robot.extend.getCurrentPosition() > extendBack) {
+                    robot.tilt.setPosition(robot.tiltDown);
+                }
+            }
+            if (!robot.touch.getState()) {
+                robot.g.setPosition(robot.gOpen);
+                sleep(300);
+                robot.in.setPower(0);
+                robot.extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                touched = true;
+            }
+        }
+
+    }
+
+    public void turnLeft (double power,long time) {
+        right(-power);
+        left(power);
+        sleep(time);
+        powerDrive(0);
+
+    }
+
 }
