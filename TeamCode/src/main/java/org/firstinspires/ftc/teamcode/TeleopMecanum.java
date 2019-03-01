@@ -42,16 +42,16 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.003;
+    double gUpKp = 0.0028;
     int gUpTolerance = 8;
-    double gDownKp = 0.003;
+    double gDownKp = 0.0025;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
     double dumpIdle = .21;
-    double dumpPos = .814;
+    double dumpPos = .845;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -392,8 +392,8 @@ public class TeleopMecanum extends OpMode {
     public void lift() {
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.25);
-        lifter.setLiftSetpoint(665);
+        dump.setPosition(.27);
+        lifter.setLiftSetpoint(670);
 
     }
 
@@ -402,6 +402,8 @@ public class TeleopMecanum extends OpMode {
         if (retracting) {
             in.setPower(-.8);
             if (!touch.getState() && retracting) {
+                extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 in.setPower(-1);
                 g.setPosition(gOpen);
                 if (!isWaiting)
@@ -417,8 +419,7 @@ public class TeleopMecanum extends OpMode {
         if (System.currentTimeMillis() - waitTime > 600 && isWaiting && !lifting && retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
             in.setPower(0);
-            extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
             retracting = false;
             isWaiting = false;
             i++;

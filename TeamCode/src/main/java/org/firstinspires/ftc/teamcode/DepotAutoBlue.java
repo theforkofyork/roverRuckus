@@ -237,11 +237,7 @@ public class DepotAutoBlue extends LinearOpMode
                     powerDrive(.2);
                     sleep(360);
                     leftStrafe(.4);
-                    sleep(300);
-                    powerDrive(0);
-                    right(-.3);
-                    left(.3);
-                    sleep(900);
+                    sleep(400);
                     powerDrive(0);
                     robot.hang.setPower(1);
                     sleep(600);
@@ -259,12 +255,17 @@ public class DepotAutoBlue extends LinearOpMode
                     sleep(500);
                     robot.extend.setPower(0);
                     robot.marker.setPosition(.5);
+                    sleep(1000);
                     simpleRetract();
                     robot.marker.setPosition(1);
                     powerDrive(-.5);
                     sleep(400);
                     powerDrive(0);
                     robot.tilt.setPosition(robot.tiltDown);
+                    right(-.3);
+                    left(.3);
+                    sleep(900);
+                    powerDrive(0);
                     state = State.Detect;
                 }
 

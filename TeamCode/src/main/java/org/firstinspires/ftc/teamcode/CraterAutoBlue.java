@@ -236,11 +236,11 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(.2);
                     sleep(360);
                     leftStrafe(.4);
-                    sleep(00);
+                    sleep(200);
                     powerDrive(0);
                     right(-.3);
                     left(.3);
-                    sleep(900);
+                    sleep(700);
                     powerDrive(0);
                     robot.hang.setPower(1);
                     sleep(600);
@@ -261,7 +261,9 @@ public class CraterAutoBlue extends LinearOpMode
                             detected = true;
                             robot.in.setPower(-1);
                             robot.extend.setPower(1);
-                            sleep(1000);
+                            sleep(700);
+                            robot.extend.setPower(0);
+                            sleep(200);
                             retract();
                             state = State.LanderAlign;
                         }
@@ -283,7 +285,7 @@ public class CraterAutoBlue extends LinearOpMode
                     //turnLeft(-.5,120);
                     robot.lift.setPower(1);
                     sleep(800);
-                    robot.dump.setPosition(robot.dumpPos);
+                    robot.dump.setPosition(.84);
                     sleep(900);
                     robot.dump.setPosition(.2);
                     sleep(80);
@@ -303,7 +305,7 @@ public class CraterAutoBlue extends LinearOpMode
                     // leftStrafe(.6);
                     powerDrive(0);
                     rotateDegrees(66);
-                    sleep(200);
+                    sleep(100);
                     powerDrive(.65);
                     sleep(1200);
                     powerDrive(0);
@@ -325,11 +327,12 @@ public class CraterAutoBlue extends LinearOpMode
                     robot.marker.setPosition(.4);
                     sleep(800);
                     robot.extend.setPower(-1);
+                    powerDrive(-.7);
                     sleep(900);
                     robot.marker.setPosition(1);
                     robot.extend.setPower(0);
-                    powerDrive(-.7);
-                    sleep(1200);
+                    powerDrive(-.2);
+                    sleep(400);
                     powerDrive(0);
                     state = State.Stop;
                 }break;
