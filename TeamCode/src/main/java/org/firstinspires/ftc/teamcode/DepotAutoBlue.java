@@ -242,24 +242,29 @@ public class DepotAutoBlue extends LinearOpMode
                     robot.hang.setPower(1);
                     sleep(600);
                     robot.hang.setPower(0);
-                    state = State.teamMarker;
+                    rotateDegrees(-2);
+                    right(-.3);
+                    left(.3);
+                    sleep(900);
+                    powerDrive(0);
+                    state = State.Detect;
                 }
                 break;
 
                 case teamMarker: {
-                    powerDrive(.3);
-                    sleep(400);
+                    powerDrive(.4);
+                    sleep(700);
                     powerDrive(0);
                     robot.tilt.setPosition(robot.tiltUp);
                     robot.extend.setPower(1);
-                    sleep(500);
+                    sleep(600);
                     robot.extend.setPower(0);
                     robot.marker.setPosition(.5);
-                    sleep(1000);
+                    sleep(2500);
                     simpleRetract();
                     robot.marker.setPosition(1);
                     powerDrive(-.5);
-                    sleep(400);
+                    sleep(500);
                     powerDrive(0);
                     robot.tilt.setPosition(robot.tiltDown);
                     right(-.3);
@@ -275,6 +280,7 @@ public class DepotAutoBlue extends LinearOpMode
                             right(.12);
                             left(-.12);
                         } else if (detector.getAligned()) {
+                            touched = false;
                             right(0);
                             left(0);
                             sleep(50);
@@ -291,13 +297,12 @@ public class DepotAutoBlue extends LinearOpMode
 
 
                 case Turn2: {
-                    robot.in.setPower(0);
-                    powerDrive(.4);
+                    powerDrive(.2);
                     sleep(500);
                     powerDrive(0);
-                    rotateDegrees(60);
-                    powerDrive(.6);
-                    sleep(800);
+                    rotateDegrees(58);
+                    powerDrive(.65);
+                    sleep(1200);
                     powerDrive(0);
                     rotateDegrees(127);
                     rightStrafe(.3);
@@ -308,6 +313,7 @@ public class DepotAutoBlue extends LinearOpMode
                     sleep(200);
                     powerDrive(0);
                     sleep(100);
+                    robot.tilt.setPosition(robot.tiltDown);
                     robot.extend.setPower(1);
                     sleep(600);
                     robot.extend.setPower(0);
