@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.teamcode.util.AxesSigns;
+import org.firstinspires.ftc.teamcode.util.BNO055IMUUtil;
 import org.firstinspires.ftc.teamcode.util.LynxOptimizedI2cFactory;
 import org.jetbrains.annotations.NotNull;
 import org.openftc.revextensions2.ExpansionHubEx;
@@ -27,6 +30,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
     private ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
     private List<ExpansionHubMotor> motors;
     private BNO055IMU imu;
+    private RevBulkData bulkData;
 
     public RoadRunnerDriveBase(HardwareMap hardwareMap) {
         super();
@@ -45,7 +49,8 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
 
         // TODO: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
         // upward (normal to the floor) using a command like the following:
-        // BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
+        // our robot should (in theory) need a remap.
+         BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
 
         leftFront = hardwareMap.get(ExpansionHubMotor.class, "LF");
         leftRear = hardwareMap.get(ExpansionHubMotor.class, "LB");
@@ -66,6 +71,9 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
 
         // TODO: set the tuned coefficients from DriveVelocityPIDTuner if using RUN_USING_ENCODER
         // setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ...);
+
+        // TODO: when it's ready, switch the localizer to our yeet wheels (yeet!)
+        //setLocalizer(new TelemetryWheelLocalizer(hardwareMap, this));
     }
 
     @Override
@@ -86,7 +94,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
     @NotNull
     @Override
     public List<Double> getWheelPositions() {
-        RevBulkData bulkData = hub.getBulkInputData();
+        bulkData = hub.getBulkInputData();
 
         if (bulkData == null) {
             return Arrays.asList(0.0, 0.0, 0.0, 0.0);
@@ -110,6 +118,10 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
     @Override
     public double getExternalHeading() {
         return imu.getAngularOrientation().firstAngle;
+    }
+
+    public RevBulkData getBulkData() {
+        return bulkData;
     }
 }
 
