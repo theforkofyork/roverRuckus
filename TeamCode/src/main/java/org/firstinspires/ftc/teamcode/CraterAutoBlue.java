@@ -231,12 +231,13 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Turn: {
+                    rotateDegrees(-2);
                     rightStrafe(.35);
-                    sleep(300);
+                    sleep(400);
                     powerDrive(.2);
                     sleep(360);
                     leftStrafe(.4);
-                    sleep(200);
+                    sleep(320);
                     powerDrive(0);
                     right(-.3);
                     left(.3);
@@ -271,6 +272,7 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
                 case LanderAlign: {
+                    ;
                     rotateDegrees(-2);
                     robot.g.setPosition(robot.gClosed);
                     powerDrive(-.3);
@@ -283,6 +285,7 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(0);
                     rotateDegrees(-18);
                     //turnLeft(-.5,120);
+                    robot.tilt.setPosition(robot.tiltDown);
                     robot.lift.setPower(1);
                     sleep(800);
                     robot.dump.setPosition(.84);
@@ -304,10 +307,10 @@ public class CraterAutoBlue extends LinearOpMode
                     sleep(520);
                     // leftStrafe(.6);
                     powerDrive(0);
-                    rotateDegrees(66);
+                    rotateDegrees(65);
                     sleep(100);
                     powerDrive(.65);
-                    sleep(1200);
+                    sleep(1400);
                     powerDrive(0);
                     rotateDegrees(127);
                     robot.tilt.setPosition(robot.tiltDown);
@@ -320,7 +323,7 @@ public class CraterAutoBlue extends LinearOpMode
                     powerDrive(0);
                     sleep(200);
                     powerDrive(.4);
-                    sleep(700);
+                    sleep(400);
                     powerDrive(0);
                     robot.extend.setPower(1);
                     sleep(1000);
