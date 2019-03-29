@@ -40,7 +40,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
         // TODO: adjust the names of the following hardware devices to match your configuration
         // for simplicity, we assume that the desired IMU and drive motors are on the same hub
         // note: this strategy is still applicable even if the drive motors are split between hubs
-        hub = hardwareMap.get(ExpansionHubEx.class, "hub");
+        hub = hardwareMap.get(ExpansionHubEx.class, "hub10");
 
         imu = LynxOptimizedI2cFactory.createLynxEmbeddedImu(hub.getStandardModule(), 0);
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -50,7 +50,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
         // TODO: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
         // upward (normal to the floor) using a command like the following:
         // our robot should (in theory) need a remap.
-         BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
+        BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
 
         leftFront = hardwareMap.get(ExpansionHubMotor.class, "LF");
         leftRear = hardwareMap.get(ExpansionHubMotor.class, "LB");
@@ -63,7 +63,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
             // TODO: decide whether or not to use the built-in velocity PID
             // if you keep it, then don't tune kStatic or kA
             // otherwise, comment out the following line
-            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
@@ -73,7 +73,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
         // setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ...);
 
         // TODO: when it's ready, switch the localizer to our yeet wheels (yeet!)
-        //setLocalizer(new TelemetryWheelLocalizer(hardwareMap, this));
+        setLocalizer(new TelemetryWheelLocalizer(hardwareMap, this));
     }
 
     @Override
@@ -94,17 +94,9 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
     @NotNull
     @Override
     public List<Double> getWheelPositions() {
-        bulkData = hub.getBulkInputData();
+        ///bulkData = hub.getBulkInputData();
 
-        if (bulkData == null) {
-            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
-        }
-
-        List<Double> wheelPositions = new ArrayList<>();
-        for (ExpansionHubMotor motor : motors) {
-            wheelPositions.add(DriveConstants.encoderTicksToInches(bulkData.getMotorCurrentPosition(motor)));
-        }
-        return wheelPositions;
+        return Arrays.asList(0.0, 0.0, 0.0, 0.0);
     }
 
     @Override
@@ -121,7 +113,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
     }
 
     public RevBulkData getBulkData() {
-        return bulkData;
+        return hub.getBulkInputData();
     }
 }
 

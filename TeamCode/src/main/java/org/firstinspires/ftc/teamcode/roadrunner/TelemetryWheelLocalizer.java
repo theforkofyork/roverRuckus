@@ -29,12 +29,12 @@ import java.util.List;
  */
 @Config
 public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
-    public static double TICKS_PER_REV = 1;
-    public static double WHEEL_RADIUS = 2; // in
+    public static double TICKS_PER_REV = 1440;
+    public static double WHEEL_RADIUS = 1.9685; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
-    public static double LATERAL_DISTANCE = 10; // in; distance between the left and right wheels
-    public static double FORWARD_OFFSET = 4; // in; offset of the lateral wheel
+    public static double LATERAL_DISTANCE = 16; // in; distance between the left and right wheels
+    public static double FORWARD_OFFSET = 7.79; // in; offset of the lateral wheel
     public static double SIDE_OFFSET = 0; // in; offset from center axis of left and right wheels
 
     private ExpansionHubMotor leftEncoder, rightEncoder, frontEncoder;
@@ -48,9 +48,9 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
         ), Arrays.asList(0.0, 0.0, Math.PI / 2));
 
         //TODO: fill in these encoder configs lol
-        leftEncoder = hardwareMap.get(ExpansionHubMotor.class, "leftEncoder");
-        rightEncoder = hardwareMap.get(ExpansionHubMotor.class, "rightEncoder");
-        frontEncoder = hardwareMap.get(ExpansionHubMotor.class, "frontEncoder");
+        leftEncoder = hardwareMap.get(ExpansionHubMotor.class, "RB");
+        rightEncoder = hardwareMap.get(ExpansionHubMotor.class, "intake");
+        frontEncoder = hardwareMap.get(ExpansionHubMotor.class, "RF");
         this.driveBase = driveBase;
     }
 
