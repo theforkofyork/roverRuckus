@@ -31,7 +31,7 @@ public class IMU  {
 
 
     public double getHeading() {
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.YZX, AngleUnit.DEGREES);
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return (angles.firstAngle+360)%360;
     }
 

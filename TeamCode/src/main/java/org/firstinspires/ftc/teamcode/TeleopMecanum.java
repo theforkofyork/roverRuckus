@@ -353,7 +353,8 @@ public class TeleopMecanum extends OpMode {
 
         telemetry.addData("lift pos", lift.getCurrentPosition());
         telemetry.addData("hang pos", hang.getCurrentPosition());
-        telemetry.addData("RB", rightBackWheel.getCurrentPosition());
+        telemetry.addData("Right Omni", rightBackWheel.getCurrentPosition()/4);
+        telemetry.
         telemetry.addData("Horizontal Omni", rightFrontWheel.getCurrentPosition()/4);
         telemetry.addData("LB", leftBackWheel.getCurrentPosition());
         telemetry.addData("LF", leftFrontWheel.getCurrentPosition());

@@ -115,7 +115,6 @@ public class LBHW {
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
-
         hwMap = ahwMap;
 
         // Save reference to Hardware map
@@ -151,10 +150,9 @@ public class LBHW {
 
 
         extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 
         leftFrontWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBackWheel.setDirection(DcMotorSimple.Direction.REVERSE);
