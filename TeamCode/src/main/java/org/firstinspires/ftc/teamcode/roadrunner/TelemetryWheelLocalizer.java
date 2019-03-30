@@ -30,12 +30,11 @@ import java.util.List;
 @Config
 public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 1440;
-    public static double WHEEL_RADIUS = 1.9685; // in
+    public static double WHEEL_RADIUS = 1; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
     public static double LATERAL_DISTANCE = 16; // in; distance between the left and right wheels
-    public static double FORWARD_OFFSET = 7.79; // in; offset of the lateral wheel
-    public static double SIDE_OFFSET = 0; // in; offset from center axis of left and right wheels
+    public static double SIDE_OFFSET = -1.75; // in; offset from center axis of left and right wheels
 
     private ExpansionHubMotor leftEncoder, rightEncoder, frontEncoder;
     private RoadRunnerDriveBase driveBase;
@@ -44,7 +43,7 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
         super(Arrays.asList(
                 new Vector2d(SIDE_OFFSET, LATERAL_DISTANCE / 2), // left
                 new Vector2d(SIDE_OFFSET, -LATERAL_DISTANCE / 2), // right
-                new Vector2d(FORWARD_OFFSET, 0) // front
+                new Vector2d(-5.5, -7.79) // front
         ), Arrays.asList(0.0, 0.0, Math.PI / 2));
 
         //TODO: fill in these encoder configs lol
@@ -66,10 +65,9 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
             return Arrays.asList(0.0, 0.0, 0.0);
         }
         return Arrays.asList(
-               encoderTicksToInches(bulkData.getMotorCurrentPosition(leftEncoder)),
+                encoderTicksToInches(bulkData.getMotorCurrentPosition(leftEncoder)),
                 -encoderTicksToInches(bulkData.getMotorCurrentPosition(rightEncoder)),
                 encoderTicksToInches(bulkData.getMotorCurrentPosition(frontEncoder))
         );
     }
 }
-

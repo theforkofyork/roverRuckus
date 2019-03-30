@@ -51,7 +51,7 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
         // TODO: if your hub is mounted vertically, remap the IMU axes so that the z-axis points
         // upward (normal to the floor) using a command like the following:
         // our robot should (in theory) need a remap.
-        BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
+        BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
         leftFront = hardwareMap.get(ExpansionHubMotor.class, "LF");
         leftRear = hardwareMap.get(ExpansionHubMotor.class, "LB");
@@ -120,4 +120,3 @@ public class RoadRunnerDriveBase extends SampleMecanumDriveBase {
         return hub.getBulkInputData();
     }
 }
-

@@ -29,13 +29,13 @@ import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerDriveBase;
 @Autonomous
 public class NewTrackWidthCalibrationOpMode extends LinearOpMode {
     public static int CIRCUMFERENTIAL_DISTANCE = 500;
-    public static int NUM_TRIALS = 5;
+    public static int NUM_TRIALS = 1;
 
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDriveBase drive = new RoadRunnerDriveBase(hardwareMap);
         // it's important that the IMU/gyro/heading sensor is not part of the localization
-        drive.setLocalizer(new MecanumDrive.MecanumLocalizer(drive, false));
+        //drive.setLocalizer(new MecanumDrive.MecanumLocalizer(drive, false));
 
         telemetry.log().add("Press play to begin the track width calibration routine");
         telemetry.log().add("Make sure your robot has enough clearance to turn smoothly");

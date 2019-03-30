@@ -28,9 +28,9 @@ public class DriveConstants {
 
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(30.0, 30.0, Math.PI / 2, Math.PI / 2);
 
-    public static double kV = 0.01;
-    public static double kA = 0.01;
-    public static double kStatic = 0;
+    public static double kV = 0.01651;
+    public static double kA = 0.00001;
+    public static double kStatic = 0.08873;
 
 
     public static double encoderTicksToInches(int ticks) {
