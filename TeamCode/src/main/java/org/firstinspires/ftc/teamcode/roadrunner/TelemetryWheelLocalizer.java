@@ -49,7 +49,7 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
 
         //TODO: fill in these encoder configs lol
         leftEncoder = hardwareMap.get(ExpansionHubMotor.class, "RB");
-        rightEncoder = hardwareMap.get(ExpansionHubMotor.class, "intake");
+        rightEncoder = hardwareMap.get(ExpansionHubMotor.class, "in");
         frontEncoder = hardwareMap.get(ExpansionHubMotor.class, "RF");
         this.driveBase = driveBase;
     }
@@ -66,8 +66,8 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
             return Arrays.asList(0.0, 0.0, 0.0);
         }
         return Arrays.asList(
-                encoderTicksToInches(bulkData.getMotorCurrentPosition(leftEncoder)),
-                encoderTicksToInches(bulkData.getMotorCurrentPosition(rightEncoder)),
+               encoderTicksToInches(bulkData.getMotorCurrentPosition(leftEncoder)),
+                -encoderTicksToInches(bulkData.getMotorCurrentPosition(rightEncoder)),
                 encoderTicksToInches(bulkData.getMotorCurrentPosition(frontEncoder))
         );
     }
