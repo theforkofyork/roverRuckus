@@ -141,10 +141,12 @@ public class DepotAutoBlue extends LinearOpMode
     List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
 
+
     GoldAlignDetector detector;
 
     @Override
     public void runOpMode() {
+
 
 
         robot.init(hardwareMap);

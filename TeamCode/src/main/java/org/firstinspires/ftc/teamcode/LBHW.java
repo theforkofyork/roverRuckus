@@ -57,17 +57,17 @@ public class LBHW {
     public static DcMotor leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
-    DcMotor lift;
-    DcMotor in;
-    DcMotor extend;
+    public DcMotor lift;
+    public DcMotor in;
+    public DcMotor extend;
     //  DcMotor lift;
-    Servo dump;
-    Servo g;
-    Servo marker;
+    public Servo dump;
+    public Servo g;
+    public Servo marker;
     Servo block;
-    DigitalChannel touch;
-    //Servo tilt;
-    Servo wheel;
+    public DigitalChannel touch;
+    //public Servo tilt;
+    public Servo wheel;
     DcMotor hang;
     boolean slow = false;
     boolean dumped = false;
@@ -81,8 +81,8 @@ public class LBHW {
     int eUpTolerance = 8;
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
-    double dumpIdle = .21;
-    double dumpPos = .82;
+    public double dumpIdle = .21;
+    public double dumpPos = .82;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -94,17 +94,17 @@ public class LBHW {
 
 
 
-    double tiltUp = .4;
-    double tiltDown = 0;
+    public double tiltUp = .4;
+    public double tiltDown = 0;
 
     double gClosed = .74;
-    double gOpen = .1;
+    public double gOpen = .1;
 
     boolean isWaiting = false;
     long waitTime = 0;
 
 
-    ServoImplEx tilt;
+    public ServoImplEx tilt;
     HardwareMap hwMap = null;
     public ElapsedTime runtime = new ElapsedTime();
 
@@ -150,8 +150,6 @@ public class LBHW {
 
 
         extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFrontWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFrontWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         leftFrontWheel.setDirection(DcMotorSimple.Direction.REVERSE);

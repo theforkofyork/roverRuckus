@@ -43,7 +43,7 @@ public class TelemetryWheelLocalizer extends ThreeTrackingWheelLocalizer {
         super(Arrays.asList(
                 new Vector2d(SIDE_OFFSET, LATERAL_DISTANCE / 2), // left
                 new Vector2d(SIDE_OFFSET, -LATERAL_DISTANCE / 2), // right
-                new Vector2d(-5.5, -7.79) // front
+                new Vector2d(5.5, 7.79) // front
         ), Arrays.asList(0.0, 0.0, Math.PI / 2));
 
         //TODO: fill in these encoder configs lol

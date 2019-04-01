@@ -29,7 +29,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerDriveBase;
 @Autonomous
 public class NewTrackWidthCalibrationOpMode extends LinearOpMode {
     public static int CIRCUMFERENTIAL_DISTANCE = 500;
-    public static int NUM_TRIALS = 1;
+    public static int NUM_TRIALS = 3;
 
     @Override
     public void runOpMode() throws InterruptedException {
