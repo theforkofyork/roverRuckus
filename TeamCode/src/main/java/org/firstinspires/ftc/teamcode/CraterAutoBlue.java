@@ -139,6 +139,7 @@ public class CraterAutoBlue extends LinearOpMode
 
 
     GoldAlignDetector detector;
+    Pose2d startPos = new Pose2d(17,15,Math.toRadians(50));
 
     @Override
     public void runOpMode() {
@@ -147,27 +148,9 @@ public class CraterAutoBlue extends LinearOpMode
         robot.init(hardwareMap);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         SampleMecanumDriveBase drive = new RoadRunnerDriveBase(hardwareMap);
-        drive.setPoseEstimate(new Pose2d(16, 16, 0.785398));
+        drive.setPoseEstimate(startPos);
 
-        Trajectory teamMarker = drive.trajectoryBuilder()
-                .splineTo(new Pose2d(-5, 58, 3.10669))
-                .build();
-        Trajectory teamMarkerReturn = drive.trajectoryBuilder()
-                .reverse()
-                .splineTo(new Pose2d(16, 16, 0.785398))
-                .build();
-        Trajectory Pit1 = drive.trajectoryBuilder()
-                .reverse()
-                .forward(17)
-                .build();
-        Trajectory Score1 = drive.trajectoryBuilder()
-                .reverse()
-                .splineTo(new Pose2d(11, 14, 0.610865))
-                .build();
-        Trajectory Pit2 = drive.trajectoryBuilder()
-                .reverse()
-                .splineTo(new Pose2d(25, 25, 0.785398))
-                .build();
+
         Trajectory Score2 = drive.trajectoryBuilder()
                 .reverse()
                 .splineTo(new Pose2d(11, 14, 0.610865))
@@ -223,7 +206,7 @@ public class CraterAutoBlue extends LinearOpMode
         telemetry.update();
 
 
-        state = State.Turn;
+        state = State.Lower;
 
 
         while (!opModeIsActive() && !isStopRequested()) {
@@ -243,13 +226,21 @@ public class CraterAutoBlue extends LinearOpMode
                 case Lower: {
                     telemetry.clear();
                     telemetry.update();
-                    robot.tilt.setPosition(robot.tiltDown);
                     robot.hang.setPower(1);
                     robot.block.setPosition(1);
                     sleep(150);
                     robot.hang.setPower(-1);
-                    sleep(1500);
+                    sleep(1300);
                     robot.hang.setPower(0);
+                    rotateDegrees(-25);
+                    robot.in.setPower(1);
+                    robot.extend.setPower(1);
+                    sleep(700);
+                    robot.extend.setPower(-1);
+                    sleep(700);
+                    robot.in.setPower(0);
+                    robot.extend.setPower(0);
+                    rotateDegrees(5);
                     state = State.Turn;
 
                 }
@@ -257,16 +248,26 @@ public class CraterAutoBlue extends LinearOpMode
 
                 case Turn: {
                     robot.tilt.setPosition(robot.tiltUp);
-                    drive.followTrajectory(teamMarker);
+                    Trajectory teamMarker = drive.trajectoryBuilder()
+                            .splineTo(new Pose2d(-10, 61, Math.toRadians(184)))
+                            .build();
+                    runPath(drive,teamMarker,dashboard);
                     robot.tilt.setPosition(robot.tiltDown);
                     robot.extend.setPower(1);
                     sleep(700);
-                    robot.marker.setPosition(.5);
+                    robot.extend.setPower(0);
+                    robot.marker.setPosition(.6);
+                    sleep(100);
                     robot.extend.setPower(-1);
-                    sleep(700);
+                    sleep(500);
                     robot.extend.setPower(0);
                     robot.tilt.setPosition(robot.tiltUp);
-                   drive.followTrajectory(teamMarkerReturn);
+                    Trajectory teamMarkerReturn = drive.trajectoryBuilder()
+                            .reverse()
+                           .splineTo(new Pose2d(5,5,Math.toRadians(25)))
+                          //  .splineTo(startPos)
+                            .build();
+                    runPath(drive,teamMarkerReturn,dashboard);
 
                     state = State.LanderAlign;
                 }
@@ -295,33 +296,65 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case LanderAlign: {
+                    Trajectory Pit1 = drive.trajectoryBuilder()
+                            //.reverse()
+                            .forward(13)
+                            .build();
                     runPath(drive,Pit1,dashboard);
                     robot.extend.setPower(1);
-                    sleep(500);
+                    sleep(300);
                     robot.tilt.setPosition(robot.tiltDown);
                     robot.in.setPower(-1);
                     robot.extend.setPower(1);
                     sleep(400);
+                    robot.extend.setPower(0);
+                    powerDrive(.2);
+                    sleep(800);
+                    powerDrive(0);
                     retract();
-                    runPath(drive,Score1,dashboard);
+                    rotateDegrees(-2);
+                    powerDrive(-.9);
+                    sleep(520);
+                    powerDrive(0);
                     liftScore();
-                    state = State.Stop;
+                    state = State.Turn2;
 
-                }
-                break;
+                }break;
 
 
                 case Turn2: {
-                    robot.tilt.setPosition(robot.tiltUp);
+                    robot.dump.setPosition(.15);
+                    robot.g.setPosition(robot.gClosed);
+                    touched = false;
+                   powerDrive(.6);
+                   sleep(700);
+                   powerDrive(0);
                     robot.extend.setPower(1);
-                    sleep(500);
+                    sleep(400);
                     robot.tilt.setPosition(robot.tiltDown);
                     robot.in.setPower(-1);
                     robot.extend.setPower(1);
                     sleep(400);
+                    robot.extend.setPower(0);
+                    powerDrive(.2);
+                    sleep(800);
+                    powerDrive(0);
                     retract();
-                    drive.followTrajectory(Score2);
+                   // rotateDegrees(-5);
+                    powerDrive(-.9);
+                    sleep(580);
+                    powerDrive(0);
                     liftScore();
+                    robot.tilt.setPosition(robot.tiltUp);
+                    powerDrive(.6);
+                    sleep(700);
+                    powerDrive(0);
+                    robot.extend.setPower(1);
+                    sleep(700);
+                    robot.tilt.setPosition(robot.tiltDown);
+                    robot.hang.setPower(1);
+                    sleep(400);
+                    robot.hang.setPower(0);
                     state = State.Stop;
                 }
                 break;
@@ -348,8 +381,11 @@ public class CraterAutoBlue extends LinearOpMode
      * Code to run ONCE after the driver hits STOP
      */
     public void powerDrive(double power) {
-        right(power);
-        left(power);
+        robot.rightFrontWheel.setPower(power);
+        robot.leftFrontWheel.setPower(power);
+        robot.leftBackWheel.setPower(power);
+        robot.rightBackWheel.setPower(power);
+
     }
 
     public void right(double power) {
@@ -369,11 +405,10 @@ public class CraterAutoBlue extends LinearOpMode
             return;
         }
 
-        double power = 0.14;
+        double power = 0.4;
 
         boolean quit = false;
         while(opModeIsActive() && !quit) {
-            robot.encoders();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (angles.firstAngle < desiredDegrees) { // turning right, so heading should get smaller
                 right(-power);
@@ -500,7 +535,7 @@ public class CraterAutoBlue extends LinearOpMode
             if (robot.touch.getState()) {
                 robot.in.setPower(-1);
                 robot.extend.setPower(-1);
-                robot.dump.setPosition(.22);
+                robot.dump.setPosition(.16);
 
                 if (robot.extend.getCurrentPosition() <= extendBack) {
                     robot.tilt.setPosition(robot.tiltUp);
@@ -524,11 +559,11 @@ public class CraterAutoBlue extends LinearOpMode
         robot.lift.setPower(1);
         sleep(800);
         robot.dump.setPosition(robot.dumpPos);
-        sleep(700);
+        sleep(900);
         robot.dump.setPosition(robot.dumpIdle);
         sleep(80);
-        robot.lift.setPower(-.8);
-        sleep(700);
+        robot.lift.setPower(-1);
+        sleep(800);
         robot.lift.setPower(0);
     }
     public void runPath(SampleMecanumDriveBase drive, Trajectory trajectory, FtcDashboard dashboard)  {

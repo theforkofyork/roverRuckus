@@ -81,7 +81,7 @@ public class LBHW {
     int eUpTolerance = 8;
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
-    public double dumpIdle = .21;
+    public double dumpIdle = .18;
     public double dumpPos = .82;
     boolean hanger = false;
     boolean retract = false;
@@ -94,7 +94,7 @@ public class LBHW {
 
 
 
-    public double tiltUp = .4;
+    public double tiltUp = .44;
     public double tiltDown = 0;
 
     double gClosed = .74;
