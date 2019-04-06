@@ -195,15 +195,13 @@ public class LBHW {
         }
     }
     public void encoders() {
-        leftBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void resetEncoder() {
-        leftBackWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftFrontWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        in.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
