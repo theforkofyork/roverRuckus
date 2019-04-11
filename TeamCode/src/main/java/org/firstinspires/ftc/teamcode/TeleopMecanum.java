@@ -42,7 +42,7 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.0028;
+    double gUpKp = 0.0032;
     int gUpTolerance = 8;
     double gDownKp = 0.0025;
     int gDownTolerance = 4;
@@ -50,8 +50,8 @@ public class TeleopMecanum extends OpMode {
     int eUpTolerance = 8;
     double eDownKp = 0.0018;
     int eDownTolerance = 5;
-    double dumpIdle = .18;
-    double dumpPos = .82;
+    double dumpIdle = .17;
+    double dumpPos = .83;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -64,20 +64,24 @@ public class TeleopMecanum extends OpMode {
 
 
 
-    double tiltUp = .44;
-    double tiltDown = 0;
+    double tiltUp = .87;
+    double tiltDown = 0.45;
 
-    double gClosed = .74;
-    double gOpen = .11;
+    double gClosed = .9;
+    double gOpen = .27;
 
     boolean isWaiting = false;
     long waitTime = 0;
+
+    boolean isWaiting3 = false;
+    long waitTime3 = 0;
 
     boolean isWaiting2  = false;
     long waitTime2 = 0;
 
     boolean lowering = false;
     boolean liftable = false;
+    boolean button = false;
 
 
     ServoImplEx tilt;
@@ -139,7 +143,7 @@ public class TeleopMecanum extends OpMode {
 
 
     public void start() {
-        tilt.setPosition(tiltUp);
+        tilt.setPosition(tiltDown);
         g.setPosition(gClosed);
         // tilt.setPosition(tiltDown);
         dump.setPosition(dumpIdle);
@@ -240,6 +244,7 @@ public class TeleopMecanum extends OpMode {
             dumped = false;
         }
         if (gamepad1.dpad_up) {
+            button = false;
             extending = true;
             retracting = false;
             liftable = false;
@@ -265,6 +270,7 @@ public class TeleopMecanum extends OpMode {
 
         if (gamepad1.y) {
             {
+                button = true;
                 tilt.setPosition(tiltUp);
             }
         }
@@ -272,9 +278,11 @@ public class TeleopMecanum extends OpMode {
             g.setPosition(gClosed);
         }
         if (gamepad1.dpad_right) {
+            button = true;
             g.setPosition(gOpen);
         }
         if (gamepad1.right_stick_button) {
+            button = true;
             extending = true;
             hanger = false;
             slow = true;
@@ -290,17 +298,13 @@ public class TeleopMecanum extends OpMode {
         if (gamepad1.left_bumper && !hanger) {
             lowering = true;
             retracting = false;
+          //  preExtend();
             dump.setPosition(dumpIdle);
 
             if (lifting) {
                 tilt.setPosition(tiltUp);
                 g.setPosition(gClosed);
-                extend.setPower(1);
                 lifting = false;
-            }
-            if (lift.getCurrentPosition() <= 10) {
-                lifter.relinquish();
-                lowering = false;
             }
            if (!dumped) {
                 lifter.setLiftSetpoint(0);
@@ -314,14 +318,24 @@ public class TeleopMecanum extends OpMode {
             lifting = true;
             lowering = false;
             lift();
-        }
 
+
+        }
+        if (lift.getCurrentPosition() <= 10 && !lifting) {
+            lifter.relinquish();
+        }
         if (lowering && dumped) {
-           lowerLift();
+            lowerLift();
         }
 
 
-        double extendBack = 950 ;
+
+
+
+
+
+
+        double extendBack = 900 ;
         double inStopPos = 530;
         if (retracting && extend.getCurrentPosition() <= extendBack) {
             tilt.setPosition(tiltUp);
@@ -329,10 +343,10 @@ public class TeleopMecanum extends OpMode {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
-            dump.setPosition(.125);
+            dump.setPosition(.11);
 
         }
-        if (retracting && extend.getCurrentPosition() <= 870) {
+        if (retracting && extend.getCurrentPosition() <= 800) {
             g.setPosition(gOpen);
         }
 
@@ -343,10 +357,10 @@ public class TeleopMecanum extends OpMode {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
 
         }
-        if (extending && !retracting){
+        if (extending && !retracting && !button){
             g.setPosition(gClosed);
         }
-        if (extending && !retracting && extend.getCurrentPosition() > extendBack) {
+        if (extending && !retracting && extend.getCurrentPosition() > 600 && !button) {
             tilt.setPosition(tiltDown);
         }
 
@@ -405,8 +419,8 @@ public class TeleopMecanum extends OpMode {
         lifting = true;
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(dumpIdle);
-        lifter.setLiftSetpoint(670);
+        dump.setPosition(.19);
+        lifter.setLiftSetpoint(690);
         dumped = false;
 
     }
@@ -414,7 +428,7 @@ public class TeleopMecanum extends OpMode {
     public void retract() {
 
         if (retracting) {
-            in.setPower(-1);
+            in.setPower(-.7);
             if (!touch.getState() && retracting) {
                 liftable = true;
                 extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -448,6 +462,8 @@ public class TeleopMecanum extends OpMode {
 
 
 
+
+
     public void sleep(double time) {
         try {
             Thread.sleep((long) time);
@@ -457,18 +473,20 @@ public class TeleopMecanum extends OpMode {
     }
     public void lowerLift() {
         if (dumped) {
-            dump.setPosition(.18);
-
+            dump.setPosition(dumpIdle);
+            extend.setPower(1);
             if (!isWaiting2) {
                 waitTime2 = System.currentTimeMillis();
                 isWaiting2 = true;
             }
-            if (System.currentTimeMillis() - waitTime2 > 200 && isWaiting2) {
+            if (System.currentTimeMillis() - waitTime2 > 300 && isWaiting2) {
                 lifter.setLiftSetpoint(0);
                 isWaiting2 = false;
                 dumped = false;
                 lifting = false;
                 lowering = false;
+                extend.setPower(0);
+
             }
 
         }
