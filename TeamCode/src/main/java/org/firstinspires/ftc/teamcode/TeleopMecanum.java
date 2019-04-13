@@ -309,6 +309,10 @@ public class TeleopMecanum extends OpMode {
            if (!dumped) {
                 lifter.setLiftSetpoint(0);
            }
+            if (lift.getCurrentPosition() <= 10) {
+                lifter.relinquish();
+                lowering = false;
+            }
         } else if (gamepad1.left_trigger > .25 && !hanger) {
             retracting = false;
             dumped = false;
@@ -321,9 +325,7 @@ public class TeleopMecanum extends OpMode {
 
 
         }
-        if (lift.getCurrentPosition() <= 10 && !lifting) {
-            lifter.relinquish();
-        }
+
         if (lowering && dumped) {
             lowerLift();
         }
@@ -420,7 +422,7 @@ public class TeleopMecanum extends OpMode {
         in.setPower(0);
         tilt.setPosition(tiltDown);
         dump.setPosition(.19);
-        lifter.setLiftSetpoint(690);
+        lifter.setLiftSetpoint(682);
         dumped = false;
 
     }
