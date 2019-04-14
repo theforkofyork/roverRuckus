@@ -12,6 +12,10 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.openftc.revextensions2.ExpansionHubEx;
+import org.openftc.revextensions2.ExpansionHubMotor;
+import org.openftc.revextensions2.RevExtensions2;
+
 
 @TeleOp(name="Tele", group="LANbros")
 public class TeleopMecanum extends OpMode {
@@ -23,12 +27,12 @@ public class TeleopMecanum extends OpMode {
     }
 
 
-    private static DcMotor leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel;
+    private static ExpansionHubMotor leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel;
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
-    DcMotor lift;
-    DcMotor in;
-    DcMotor extend;
+    ExpansionHubMotor lift;
+    ExpansionHubMotor in;
+    ExpansionHubMotor extend;
     Servo marker;
     //  DcMotor lift;
     Servo dump;
@@ -37,7 +41,7 @@ public class TeleopMecanum extends OpMode {
     DigitalChannel touch;
     //Servo tilt;
     Servo wheel;
-    DcMotor hang;
+    ExpansionHubMotor hang;
     boolean slow = false;
     boolean dumped = false;
     boolean extending = false;
@@ -82,33 +86,38 @@ public class TeleopMecanum extends OpMode {
     boolean lowering = false;
     boolean liftable = false;
     boolean button = false;
+    boolean touched = false;
+
+    ExpansionHubEx hub3, hub10;
 
 
     ServoImplEx tilt;
 
     @Override
     public void init() {
-
+        RevExtensions2.init();
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        leftFrontWheel = hardwareMap.dcMotor.get("LF");
-        leftBackWheel = hardwareMap.dcMotor.get("LB");
-        rightFrontWheel = hardwareMap.dcMotor.get("RF");
-        rightBackWheel = hardwareMap.dcMotor.get("RB");
-        lift = hardwareMap.dcMotor.get("lift");
+        leftFrontWheel = (ExpansionHubMotor) hardwareMap.dcMotor.get("LF");
+        leftBackWheel = (ExpansionHubMotor) hardwareMap.dcMotor.get("LB");
+        rightFrontWheel = (ExpansionHubMotor) hardwareMap.dcMotor.get("RF");
+        rightBackWheel = (ExpansionHubMotor) hardwareMap.dcMotor.get("RB");
+        lift = (ExpansionHubMotor) hardwareMap.dcMotor.get("lift");
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        in = hardwareMap.dcMotor.get("in");
+        in = (ExpansionHubMotor) hardwareMap.dcMotor.get("in");
        // in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        extend = hardwareMap.dcMotor.get("extend");
+        extend = (ExpansionHubMotor) hardwareMap.dcMotor.get("extend");
         // tilt = hardwareMap.servo.get("tilt");
         g = hardwareMap.servo.get("g");
         dump = hardwareMap.servo.get("dump");
-        hang = hardwareMap.dcMotor.get("hang");
+        hang = (ExpansionHubMotor) hardwareMap.dcMotor.get("hang");
         wheel = hardwareMap.servo.get("wheel");
         tilt = hardwareMap.get(ServoImplEx.class, "tilt");
         touch = hardwareMap.get(DigitalChannel.class, "touch");
         marker = hardwareMap.servo.get("marker");
         block = hardwareMap.servo.get("block");
 
+        hub3 =hardwareMap.get(ExpansionHubEx.class,"Expansion Hub 3");
+        hub10 = hardwareMap.get(ExpansionHubEx.class, "hub10");
 
         touch.setMode(DigitalChannel.Mode.INPUT);
 
@@ -182,6 +191,8 @@ public class TeleopMecanum extends OpMode {
         double rightback = Ch3 - Ch1 + Ch4;
         double leftfront = Ch3 + Ch1 + Ch4;
         double leftback = Ch3 + Ch1 - Ch4;
+
+
 
 
 // Equation for Drive, Left Stick when pushed forward sends robot forward, Left Stick when sideways controls strafing, Right stick when pushed left controls turning
@@ -337,18 +348,18 @@ public class TeleopMecanum extends OpMode {
 
 
 
-        double extendBack = 900 ;
+        double extendBack = 950 ;
         double inStopPos = 530;
-        if (retracting && extend.getCurrentPosition() <= extendBack) {
+        if (retracting && extend.getCurrentPosition() <= extendBack && !touched) {
             tilt.setPosition(tiltUp);
-        } else if (retracting && extend.getCurrentPosition() > extendBack) {
+        } else if (retracting && extend.getCurrentPosition() > extendBack && !touched) {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
             dump.setPosition(.11);
 
         }
-        if (retracting && extend.getCurrentPosition() <= 800) {
+        if (retracting && extend.getCurrentPosition() <= 820) {
             g.setPosition(gOpen);
         }
 
@@ -376,6 +387,17 @@ public class TeleopMecanum extends OpMode {
         telemetry.addData("LF", leftFrontWheel.getCurrentPosition());
         telemetry.addData("extend", extend.getCurrentPosition());
         telemetry.addData("touched", touch.getState());
+        telemetry.addData("Lift current", lift.getCurrentDraw()/1000d);
+        telemetry.addData("RB current", rightBackWheel.getCurrentDraw()/1000d);
+        telemetry.addData("LF current", leftFrontWheel.getCurrentDraw()/1000d);
+        telemetry.addData("RF current", rightFrontWheel.getCurrentDraw()/1000d);
+        telemetry.addData("LB current", leftBackWheel.getCurrentDraw()/1000d);
+        telemetry.addData("Extend current", extend.getCurrentDraw()/1000d);
+        telemetry.addData("in current",in.getCurrentDraw()/1000d);
+        telemetry.addData("Hang current", hang.getCurrentDraw()/1000d);
+        telemetry.addData("Total hub3 current",hub3.getTotalModuleCurrentDraw()/1000d);
+        telemetry.addData("Total hub10 current",hub10.getTotalModuleCurrentDraw()/1000d);
+        telemetry.addData("12v",hub3.read12vMonitor());
 
     }
 
@@ -432,11 +454,14 @@ public class TeleopMecanum extends OpMode {
         if (retracting) {
             in.setPower(-.7);
             if (!touch.getState() && retracting) {
+                touched = true;
                 liftable = true;
                 extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 in.setPower(-1);
                 g.setPosition(gOpen);
+                tilt.setPosition(.7);
+
                 if (!isWaiting)
                     waitTime = System.currentTimeMillis();
                 isWaiting = true;
@@ -447,8 +472,22 @@ public class TeleopMecanum extends OpMode {
             }
 
         }
+        if (System.currentTimeMillis() - waitTime > 100 && isWaiting && !lifting && retracting) {
+          tilt.setPosition(tiltUp);
+        }
+        if (System.currentTimeMillis() - waitTime > 200 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(.7);
+        }
         if (System.currentTimeMillis() - waitTime > 300 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(tiltUp);
+        }
+
+
+        if (System.currentTimeMillis() - waitTime > 400 && isWaiting && !lifting && retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+            //tilt.setPosition(.4);
+
+            // tilt.setPosition(.9);
             in.setPower(0);
             if (liftable) {
                 lift();
@@ -456,6 +495,7 @@ public class TeleopMecanum extends OpMode {
             retracting = false;
             isWaiting = false;
             liftable = false;
+            touched = false;
             i++;
         }
 
