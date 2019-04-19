@@ -29,34 +29,40 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.Dogeforia;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
+import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
+import com.disnodeteam.dogecv.filters.LeviColorFilter;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
+import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.FRONT;
 
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 
@@ -64,13 +70,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.Func;
-import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerDriveBase;
-import org.firstinspires.ftc.teamcode.roadrunner.SampleMecanumDriveBase;
-import org.firstinspires.ftc.teamcode.util.DashboardUtil;
-
-
-
+import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -108,7 +111,6 @@ public class CraterAutoBlue extends LinearOpMode
         cycle,
 
     }
-
     LBHW robot = new LBHW();
     public PID turnPID = new PID();
 
@@ -120,8 +122,7 @@ public class CraterAutoBlue extends LinearOpMode
     Orientation angles;
     Acceleration gravity;
     boolean touched = false;
-    boolean r,c,l = false;
-    double Tpower = 0.3;
+
 
     private ElapsedTime runtime = new ElapsedTime();
     private static final float mmPerInch        = 25.4f;
@@ -140,22 +141,12 @@ public class CraterAutoBlue extends LinearOpMode
 
 
     GoldAlignDetector detector;
-    Pose2d startPos = new Pose2d(17,15,Math.toRadians(50));
 
     @Override
     public void runOpMode() {
 
 
         robot.init(hardwareMap);
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        SampleMecanumDriveBase drive = new RoadRunnerDriveBase(hardwareMap);
-        drive.setPoseEstimate(startPos);
-
-
-        Trajectory Score2 = drive.trajectoryBuilder()
-                .reverse()
-                .splineTo(new Pose2d(11, 14, 0.610865))
-                .build();
 
         webcamName = hardwareMap.get(WebcamName.class, "cam");
 
@@ -171,8 +162,9 @@ public class CraterAutoBlue extends LinearOpMode
         vuforia.enableConvertFrameToBitmap();
 
 
+
         detector = new GoldAlignDetector();
-        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance(), 0, true);
+        detector.init(hardwareMap.appContext,CameraViewDisplay.getInstance(), 0, true);
         detector.useDefaults();
         detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
         //detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
@@ -184,52 +176,30 @@ public class CraterAutoBlue extends LinearOpMode
         vuforia.start();
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
-        telemetry.addData("imu init", "waiting");
+        telemetry.addData("imu init","waiting");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
         robot.blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
         //robot.hang.setPower(.05);
-
-        if (gamepad1.a) {
-            r = true;
-            l = false;
-            c = false;
-            telemetry.addData("r",r);
-            telemetry.update();
-        }
-
-        if (gamepad1.b) {
-            r = false;
-            l = true;
-            c = false;
-            telemetry.addData("l",l);
-            telemetry.update();
-        }if (gamepad1.x) {
-            r = false;
-            l = true;
-            c = true;
-            telemetry.addData("c",c);
-            telemetry.update();
-        }
 
         // Set up our telemetry dashboard
         composeTelemetry();
         telemetry.update();
 
 
+
+
         state = State.Lower;
-
-
         while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("status", "waiting for start command...");
             telemetry.update();
@@ -242,99 +212,41 @@ public class CraterAutoBlue extends LinearOpMode
         while (opModeIsActive()) {
             telemetry.addData("status", "loop test... waiting for start");
             telemetry.update();
+
             switch (state) {
 
                 case Lower: {
-                    r = true;
-                    robot.tilt.setPosition(robot.tiltDown);
                     telemetry.clear();
                     telemetry.update();
+                    robot.tilt.setPosition(robot.tiltDown);
                     robot.hang.setPower(1);
                     robot.block.setPosition(1);
                     sleep(150);
                     robot.hang.setPower(-1);
-                    sleep(1300);
+                    sleep(1500);
                     robot.hang.setPower(0);
-                    if (l) {
-                        Tpower = .3;
-                        rotateDegrees(26);
-                       // RIGHT rotateDegrees(-25);
-                    }
-                    if (r) {
-                        Tpower = .35;
-                        rotateDegrees(-25);
-                    }
-
-                    robot.in.setPower(1);
-                    robot.extend.setPower(1);
-                    sleep(700);
-                    robot.extend.setPower(-1);
-                    sleep(700);
-                    robot.in.setPower(0);
-                    robot.extend.setPower(0);
-                   // rotateDegrees(4);
-                    if (r || c) {
-                        rotateDegrees(5);
-                    }
-
                     state = State.Turn;
 
                 }
                 break;
 
                 case Turn: {
-                    robot.hang.setPower(1);
-                    sleep(440);
-                    robot.hang.setPower(0);
-                    robot.tilt.setPosition(robot.tiltUp);
-                    if (l) {
-                        Trajectory teamMarker = drive.trajectoryBuilder()
-                                .splineTo(new Pose2d(1, 66, Math.toRadians(170)))
-                                .build();
-                        runPath(drive, teamMarker, dashboard);
-                    }
-                    if (r || c) {
-                        Trajectory teamMarker = drive.trajectoryBuilder()
-                                .splineTo(new Pose2d(-9, 59, Math.toRadians(193)))
-                                .build();
-                        runPath(drive, teamMarker, dashboard);
-                    }
-                    robot.tilt.setPosition(robot.tiltDown);
-                    robot.extend.setPower(1);
-                    sleep(700);
-                    robot.extend.setPower(0);
-                    robot.marker.setPosition(.6);
-                    //robot.tilt.setPosition(robot.tiltUp);
-                    sleep(200);
-                    robot.extend.setPower(-1);
-                    sleep(500);
-                    robot.extend.setPower(0);
-                    robot.tilt.setPosition(robot.tiltUp);
-                    if (l) {
-                        Trajectory teamMarkerReturn = drive.trajectoryBuilder()
-                                .reverse()
-                                //.splineTo(new Pose2d(5,5,Math.toRadians(25))) RIGHT
-                                .splineTo(new Pose2d(8, 7, Math.toRadians(3)))
-                                //  .splineTo(startPos)
-                                .build();
-                        runPath(drive, teamMarkerReturn, dashboard);
-                    } if (r || c) {
-                        Trajectory teamMarkerReturn = drive.trajectoryBuilder()
-                                .reverse()
-                                .splineTo(new Pose2d(5,5,Math.toRadians(25)))
-                               // .splineTo(new Pose2d(8, 7, Math.toRadians(3)))
-                                //  .splineTo(startPos)
-                                .build();
-                        runPath(drive, teamMarkerReturn, dashboard);
-                    }
-                    powerDrive(-.6);
-                    if (l) {
-                        sleep(420);
-                    } if (r || c) {
-                        sleep(300);
-                    }
+                    rotateDegrees(-2);
+                    rightStrafe(.35);
+                    sleep(400);
+                    powerDrive(.2);
+                    sleep(360);
+                    leftStrafe(.4);
+                    sleep(320);
                     powerDrive(0);
-                    state = State.LanderAlign;
+                    right(-.3);
+                    left(.3);
+                    sleep(700);
+                    powerDrive(0);
+                    robot.hang.setPower(1);
+                    sleep(600);
+                    robot.hang.setPower(0);
+                    state = State.Detect;
                 }
                 break;
 
@@ -357,85 +269,76 @@ public class CraterAutoBlue extends LinearOpMode
                             state = State.LanderAlign;
                         }
                     }
-                }
-                break;
+                }break;
 
                 case LanderAlign: {
-                    Trajectory Pit1 = drive.trajectoryBuilder()
-                            //.reverse()
-                            .forward(15)
-                            .build();
-                    runPath(drive,Pit1,dashboard);
-                    robot.extend.setPower(1);
-                    sleep(300);
+                    ;
+                    rotateDegrees(-2);
+                    robot.g.setPosition(robot.gClosed);
+                    powerDrive(-.3);
+                    sleep(350);
+                    rotateDegrees(-2);
+                    powerDrive(.4);
+                    sleep(140);
+                    leftStrafe(.5);
+                    sleep(160);
+                    powerDrive(0);
+                    rotateDegrees(-18);
+                    //turnLeft(-.5,120);
                     robot.tilt.setPosition(robot.tiltDown);
-                    robot.in.setPower(-1);
-                    robot.extend.setPower(1);
-                    sleep(400);
-                    robot.extend.setPower(0);
-                    powerDrive(.2);
+                    robot.lift.setPower(1);
                     sleep(800);
-                    powerDrive(0);
-                    retract();
-                    if (l) {
-                        Trajectory Score = drive.trajectoryBuilder()
-                                // .reverse()
-                                // RIGHT.turnTo(Math.toRadians(20))
-                                .turnTo(Math.toRadians(10))
-                                .build();
-                        runPath(drive, Score, dashboard);
-                    }if (r || c) {
-                        Trajectory Score = drive.trajectoryBuilder()
-                                // .reverse()
-                                .turnTo(Math.toRadians(30))
-                                //.turnTo(Math.toRadians(10))
-                                .build();
-                        runPath(drive, Score, dashboard);
-                    }
-                   // rotateDegrees(-2);
-                    powerDrive(-.9);
-                    sleep(540);
-                    powerDrive(0);
-                    liftScore();
+                    robot.dump.setPosition(.81);
+                    sleep(900);
+                    robot.dump.setPosition(.17);
+                    sleep(80);
+                    robot.lift.setPower(-.5);
+                    sleep(800);
+                    robot.lift.setPower(0);
+                    robot.extend.setPower(0);
                     state = State.Turn2;
 
                 }break;
 
 
                 case Turn2: {
-                    robot.dump.setPosition(.15);
-                    robot.g.setPosition(robot.gClosed);
-                    robot.tilt.setPosition(robot.tiltUp);
-                    touched = false;
-                   powerDrive(.6);
-                   sleep(650);
-                   powerDrive(0);
-                    robot.extend.setPower(1);
-                    sleep(550);
+                    rotateDegrees(-2);
+                    powerDrive(.4);
+                    sleep(520);
+                    // leftStrafe(.6);
+                    powerDrive(0);
+                    rotateDegrees(65);
+                    sleep(100);
+                    powerDrive(.65);
+                    sleep(1400);
+                    powerDrive(0);
+                    rotateDegrees(127);
                     robot.tilt.setPosition(robot.tiltDown);
-                    robot.in.setPower(-1);
-                    robot.extend.setPower(1);
+                    rightStrafe(.3);
+                    sleep(600);
+                    powerDrive(0);
+                    sleep(100);
+                    leftStrafe(.4);
                     sleep(300);
-                    robot.extend.setPower(0);
-                    powerDrive(.2);
-                    sleep(800);
                     powerDrive(0);
-                    retract();
-                   // rotateDegrees(-5);
-                    powerDrive(-.9);
-                    sleep(580);
-                    powerDrive(0);
-                    liftScore();
-                    robot.tilt.setPosition(robot.tiltUp);
-                    powerDrive(.6);
-                    sleep(700);
+                    sleep(200);
+                    powerDrive(.4);
+                    sleep(400);
                     powerDrive(0);
                     robot.extend.setPower(1);
-                    sleep(700);
-                    robot.tilt.setPosition(robot.tiltDown);
+                    sleep(1000);
+                    robot.marker.setPosition(.4);
+                    sleep(800);
+                    robot.extend.setPower(-1);
+                    powerDrive(-.7);
+                    sleep(900);
+                    robot.marker.setPosition(1);
+                    robot.extend.setPower(0);
+                    powerDrive(-.2);
+                    sleep(400);
+                    powerDrive(0);
                     state = State.Stop;
-                }
-                break;
+                }break;
 
 
                 case Stop: {
@@ -443,27 +346,23 @@ public class CraterAutoBlue extends LinearOpMode
                     right(0);
                     left(0);
                     stop();
-                }
-                break;
+                }break;
+
             }
             telemetry.addData("status", "loop test... waiting for start");
             telemetry.update();
+
+
         }
 
-
     }
-
-
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     public void powerDrive(double power) {
-        robot.rightFrontWheel.setPower(power);
-        robot.leftFrontWheel.setPower(power);
-        robot.leftBackWheel.setPower(power);
-        robot.rightBackWheel.setPower(power);
-
+        right(power);
+        left(power);
     }
 
     public void right(double power) {
@@ -483,16 +382,18 @@ public class CraterAutoBlue extends LinearOpMode
             return;
         }
 
+        double power = 0.14;
 
         boolean quit = false;
         while(opModeIsActive() && !quit) {
+            robot.encoders();
             angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             if (angles.firstAngle < desiredDegrees) { // turning right, so heading should get smaller
-                right(-Tpower);
-                left(Tpower);
+                right(-power);
+                left(power);
             } else { // turning left, so heading gets bigger.
-                right(Tpower);
-                left(-Tpower);
+                right(power);
+                left(-power);
             }
             final float headingDiff = Math.abs(desiredDegrees - angles.firstAngle );
 
@@ -506,7 +407,32 @@ public class CraterAutoBlue extends LinearOpMode
         left(0);
     }
 
+    public void zeroRobot(){
+        boolean quit = false;
+        double power = .07;
+        while (opModeIsActive() && !quit) {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            if (angles.firstAngle < 0) {
+                right(-power);
+                left(power);
+            } else if (angles.firstAngle > 0) {
+                right(power);
+                left(-power);
+            }
 
+            if (angles.firstAngle == 0 || angles.firstAngle == 1) {
+                quit = true;
+            }
+
+            telemetry.addData("Headings", String.format("Target", 0, angles.firstAngle));
+            telemetry.update();
+
+            if (angles.firstAngle == 1 || angles.firstAngle == 1){
+                quit = true;
+            }
+        }
+        powerDrive(0);
+    }
 
     void composeTelemetry() {
 
@@ -575,7 +501,71 @@ public class CraterAutoBlue extends LinearOpMode
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
-   public int getStrafeEncoderAverage(){
+    public void rightGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = robot.rightFrontWheel.getCurrentPosition();
+        target %= 360;
+        while (startCount - encoderCounts>robot.rightFrontWheel.getCurrentPosition() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power  + (currentHeading - target) / speed;
+            RL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power - (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(-FL_speed);
+            robot.rightFrontWheel.setPower(FR_speed);
+            robot.leftBackWheel.setPower(RL_speed);
+            robot.rightBackWheel.setPower(-RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }
+    public void leftGyroStrafe(double power,double target,double encoderCounts)
+    {
+        double FL_speed = 0;
+        double FR_speed = 0;
+        double RL_speed = 0;
+        double RR_speed = 0;
+        double startCount = getStrafeEncoderAverage();
+        target %= 360;
+        while (startCount - encoderCounts<getStrafeEncoderAverage() && opModeIsActive())
+        {
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            double currentHeading = angles.firstAngle;  //Current direction
+            double speed = 50;
+            FL_speed = power - (currentHeading - target) / speed;  //Calculate speed for each side
+            FR_speed = power - (currentHeading - target) / speed;
+            RL_speed = power + (currentHeading - target) / speed;  //Calculate speed for each side
+            RR_speed = power + (currentHeading - target) / speed;
+
+            FL_speed = Range.clip(FL_speed, -1, 1);
+            FR_speed = Range.clip(FR_speed, -1, 1);
+            RL_speed = Range.clip(RL_speed, -1, 1);
+            RR_speed = Range.clip(RR_speed, -1, 1);
+
+            robot.leftFrontWheel.setPower(FL_speed);
+            robot.rightFrontWheel.setPower(-FR_speed);
+            robot.leftBackWheel.setPower(-RL_speed);
+            robot.rightBackWheel.setPower(RR_speed);
+        }
+
+        left(0);
+        right(0);
+    }   public int getStrafeEncoderAverage(){
     double FL = Math.abs(robot.rightFrontWheel.getCurrentPosition());
     double FR = Math.abs(robot.rightBackWheel.getCurrentPosition());
     double BL = Math.abs(robot.leftBackWheel.getCurrentPosition());
@@ -612,7 +602,7 @@ public class CraterAutoBlue extends LinearOpMode
             if (robot.touch.getState()) {
                 robot.in.setPower(-1);
                 robot.extend.setPower(-1);
-                robot.dump.setPosition(.16);
+                robot.dump.setPosition(.22);
 
                 if (robot.extend.getCurrentPosition() <= extendBack) {
                     robot.tilt.setPosition(robot.tiltUp);
@@ -632,43 +622,12 @@ public class CraterAutoBlue extends LinearOpMode
 
     }
 
-    public void liftScore() {
-        robot.tilt.setPosition(robot.tiltDown);
-        robot.lift.setPower(1);
-        sleep(800);
-        robot.dump.setPosition(robot.dumpPos);
-        sleep(900);
-        robot.dump.setPosition(robot.dumpIdle);
-        sleep(80);
-        robot.lift.setPower(-1);
-        sleep(800);
-        robot.lift.setPower(0);
+    public void turnLeft (double power,long time) {
+        right(-power);
+        left(power);
+        sleep(time);
+        powerDrive(0);
+
     }
-    public void runPath(SampleMecanumDriveBase drive, Trajectory trajectory, FtcDashboard dashboard)  {
-        drive.followTrajectory(trajectory);
-        while (!isStopRequested() && drive.isFollowingTrajectory()) {
-            Pose2d currentPose = drive.getPoseEstimate();
-
-            TelemetryPacket packet = new TelemetryPacket();
-            Canvas fieldOverlay = packet.fieldOverlay();
-
-            packet.put("x", currentPose.getX());
-            packet.put("y", currentPose.getY());
-            packet.put("heading", currentPose.getHeading());
-
-            fieldOverlay.setStrokeWidth(4);
-            fieldOverlay.setStroke("green");
-            DashboardUtil.drawSampledTrajectory(fieldOverlay, trajectory);
-            fieldOverlay.setFill("blue");
-            fieldOverlay.fillCircle(currentPose.getX(), currentPose.getY(), 3);
-
-            dashboard.sendTelemetryPacket(packet);
-
-            drive.update();
-        }
-    }
-
-
-
 
 }

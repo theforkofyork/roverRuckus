@@ -46,7 +46,7 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.0032;
+    double gUpKp = 0.0025;
     int gUpTolerance = 8;
     double gDownKp = 0.0025;
     int gDownTolerance = 4;
@@ -64,15 +64,17 @@ public class TeleopMecanum extends OpMode {
     int i = 0;
     int i2 = 0;
 
+    boolean intaking = false;
+
     private ElapsedTime     runtime = new ElapsedTime();
 
 
 
-    double tiltUp = .87;
-    double tiltDown = 0.45;
+    double tiltUp = .9;
+    double tiltDown = .48;
 
     double gClosed = .9;
-    double gOpen = .27;
+    double gOpen = .28;
 
     boolean isWaiting = false;
     long waitTime = 0;
@@ -87,6 +89,9 @@ public class TeleopMecanum extends OpMode {
     boolean liftable = false;
     boolean button = false;
     boolean touched = false;
+
+    double old = 0;
+    double ratio = .4;
 
     ExpansionHubEx hub3, hub10;
 
@@ -143,8 +148,8 @@ public class TeleopMecanum extends OpMode {
         extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hang.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         telemetry.addData("status", "loop test... waiting for start");
-        pattern = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
-        blinkinLedDriver.setPattern(pattern);
+       // pattern = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
+        //blinkinLedDriver.setPattern(pattern);
         telemetry.update();
 
 
@@ -167,7 +172,7 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void loop() {
 
-        if (runtime.seconds() < 90 && !retracting) {
+      /*  if (runtime.seconds() < 90 && !retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
         } else if (runtime.seconds() > 90 && runtime.seconds() < 105 && !retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
@@ -175,7 +180,7 @@ public class TeleopMecanum extends OpMode {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.STROBE_RED);
         } else if (runtime.seconds() > 120 && !retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
-        }
+        } */
 
 
        // Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -243,13 +248,20 @@ public class TeleopMecanum extends OpMode {
             in.setPower(1);
         } else if (gamepad1.right_trigger > .25 && !retracting) {
             in.setPower(-1);
+            intaking = true;
+
         } else if (gamepad1.right_trigger < .25 && !retracting) {
             in.setPower(0);
+            intaking = false;
         }
 
         if (gamepad1.x) {
-            dump.setPosition(dumpPos);
-            dumped = true;
+
+                dump.setPosition(dumpPos);
+                dumped = true;
+                isWaiting3 = false;
+
+
         } else if (gamepad1.b) {
             dump.setPosition(dumpIdle);
             dumped = false;
@@ -348,7 +360,7 @@ public class TeleopMecanum extends OpMode {
 
 
 
-        double extendBack = 950 ;
+        double extendBack = 890 ;
         double inStopPos = 530;
         if (retracting && extend.getCurrentPosition() <= extendBack && !touched) {
             tilt.setPosition(tiltUp);
@@ -356,10 +368,13 @@ public class TeleopMecanum extends OpMode {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
-            dump.setPosition(.11);
+            dump.setPosition(dumpIdle);
 
         }
-        if (retracting && extend.getCurrentPosition() <= 820) {
+        if (retracting && extend.getCurrentPosition() <= 500) {
+            g.setPosition(.5);
+        }
+        if (retracting && extend.getCurrentPosition() <= 350) {
             g.setPosition(gOpen);
         }
 
@@ -398,6 +413,17 @@ public class TeleopMecanum extends OpMode {
         telemetry.addData("Total hub3 current",hub3.getTotalModuleCurrentDraw()/1000d);
         telemetry.addData("Total hub10 current",hub10.getTotalModuleCurrentDraw()/1000d);
         telemetry.addData("12v",hub3.read12vMonitor());
+        telemetry.addData("old",old/1000d);
+
+
+           double newV = in.getCurrentDraw();
+           old = (newV * ratio) + ((1-ratio) * old);
+
+        if (old >= 2400) {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+        } else {
+            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        }
 
     }
 
@@ -443,8 +469,8 @@ public class TeleopMecanum extends OpMode {
         lifting = true;
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.19);
-        lifter.setLiftSetpoint(682);
+        dump.setPosition(.23);
+        lifter.setLiftSetpoint(643);
         dumped = false;
 
     }
@@ -452,15 +478,16 @@ public class TeleopMecanum extends OpMode {
     public void retract() {
 
         if (retracting) {
-            in.setPower(-.7);
+            in.setPower(-1);
             if (!touch.getState() && retracting) {
+                extend.setPower(0);
                 touched = true;
                 liftable = true;
                 extend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 in.setPower(-1);
                 g.setPosition(gOpen);
-                tilt.setPosition(.7);
+                //tilt.setPosition(.7);
 
                 if (!isWaiting)
                     waitTime = System.currentTimeMillis();
@@ -472,20 +499,35 @@ public class TeleopMecanum extends OpMode {
             }
 
         }
+        double LowPos = .88;
+        double UpPos = tiltUp;
+        if (System.currentTimeMillis() - waitTime > 50 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(LowPos);
+        }
         if (System.currentTimeMillis() - waitTime > 100 && isWaiting && !lifting && retracting) {
-          tilt.setPosition(tiltUp);
+            tilt.setPosition(UpPos);
+        }
+        if (System.currentTimeMillis() - waitTime > 150 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(LowPos);
         }
         if (System.currentTimeMillis() - waitTime > 200 && isWaiting && !lifting && retracting) {
-            tilt.setPosition(.7);
+            tilt.setPosition(UpPos);
+        } if (System.currentTimeMillis() - waitTime > 250 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(LowPos);
         }
         if (System.currentTimeMillis() - waitTime > 300 && isWaiting && !lifting && retracting) {
-            tilt.setPosition(tiltUp);
+            tilt.setPosition(UpPos);
+        }
+        if (System.currentTimeMillis() - waitTime > 350 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(LowPos);
+        }
+        if (System.currentTimeMillis() - waitTime > 400 && isWaiting && !lifting && retracting) {
+            tilt.setPosition(UpPos);
         }
 
-
-        if (System.currentTimeMillis() - waitTime > 400 && isWaiting && !lifting && retracting) {
+        if (System.currentTimeMillis() - waitTime > 600 && isWaiting && !lifting && retracting) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
-            //tilt.setPosition(.4);
+            tilt.setPosition(UpPos);
 
             // tilt.setPosition(.9);
             in.setPower(0);
@@ -521,7 +563,7 @@ public class TeleopMecanum extends OpMode {
                 waitTime2 = System.currentTimeMillis();
                 isWaiting2 = true;
             }
-            if (System.currentTimeMillis() - waitTime2 > 300 && isWaiting2) {
+            if (System.currentTimeMillis() - waitTime2 > 250 && isWaiting2) {
                 lifter.setLiftSetpoint(0);
                 isWaiting2 = false;
                 dumped = false;

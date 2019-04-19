@@ -94,11 +94,12 @@ public class LBHW {
 
 
 
-    public double tiltUp = .44;
-    public double tiltDown = 0;
 
-    double gClosed = .74;
-    public double gOpen = .1;
+   public double tiltUp = .9;
+   public double tiltDown = .48;
+
+  public  double gClosed = .9;
+    public double gOpen = .28;
 
     boolean isWaiting = false;
     long waitTime = 0;
@@ -171,6 +172,7 @@ public class LBHW {
         runtime.reset();
         block.setPosition(0);
 
+        encoders();
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
     }
@@ -195,7 +197,8 @@ public class LBHW {
         }
     }
     public void encoders() {
-        in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       leftBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
