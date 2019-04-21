@@ -146,7 +146,7 @@ public class LBHW {
 
         //hang.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        hang.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         // in.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
@@ -164,6 +164,8 @@ public class LBHW {
         extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hang.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pattern = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
+        hang.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hang.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         blinkinLedDriver.setPattern(pattern);
         g.setPosition(gClosed);
         // dump.setPosition(dumpIdle);
