@@ -47,8 +47,8 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.0025;
-    int gUpTolerance = 8;
+    double gUpKp = 0.003;
+    int gUpTolerance = 4;
     double gDownKp = 0.0025;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
@@ -74,7 +74,7 @@ public class TeleopMecanum extends OpMode {
     double tiltUp = .9;
     double tiltDown = .48;
 
-    double gClosed = .9;
+    double gClosed = .92;
     double gOpen = .28;
 
     boolean isWaiting = false;
@@ -174,13 +174,7 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void loop() {
 
-      if (runtime.seconds() > 90 && runtime.seconds() < 105 && !retracting) {
-            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
-        } else if (runtime.seconds() > 105 && runtime.seconds() < 120 && !retracting) {
-            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.STROBE_RED);
-        } else if (runtime.seconds() > 120 && !retracting) {
-            blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
-        }
+    
 
 
        // Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -361,7 +355,7 @@ public class TeleopMecanum extends OpMode {
 
 
 
-        double extendBack = 890 ;
+        double extendBack = 940 ;
         double inStopPos = 530;
         if (retracting && extend.getCurrentPosition() <= extendBack && !touched) {
             tilt.setPosition(tiltUp);
@@ -369,7 +363,7 @@ public class TeleopMecanum extends OpMode {
             tilt.setPosition(tiltDown);
         }
         if (retracting) {
-            dump.setPosition(.12);
+            dump.setPosition(dumpIdle);
 
         }
         if (retracting && extend.getCurrentPosition() <= 500) {
@@ -380,6 +374,7 @@ public class TeleopMecanum extends OpMode {
         }
 
         lifter.update();
+        hange.update();
 
         if (retracting && !touch.getState()) {
             g.setPosition(gOpen);
@@ -420,7 +415,7 @@ public class TeleopMecanum extends OpMode {
            double newV = in.getCurrentDraw();
            old = (newV * ratio) + ((1-ratio) * old);
 
-        if (old >= 2400) {
+        if (old >= 2700) {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
         } else {
             blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
@@ -471,7 +466,7 @@ public class TeleopMecanum extends OpMode {
         in.setPower(0);
         tilt.setPosition(tiltDown);
         dump.setPosition(.23);
-        lifter.setLiftSetpoint(675);
+        lifter.setLiftSetpoint(670);
         dumped = false;
 
     }
