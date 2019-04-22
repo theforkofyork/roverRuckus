@@ -51,12 +51,8 @@ public class TeleopMecanum extends OpMode {
     int gUpTolerance = 4;
     double gDownKp = 0.0025;
     int gDownTolerance = 4;
-    double eUpKp = 0.004;
-    int eUpTolerance = 8;
-    double eDownKp = 0.0018;
-    int eDownTolerance = 5;
     double dumpIdle = .17;
-    double dumpPos = .8;
+    double dumpPos = .805;
     boolean hanger = false;
     boolean retract = false;
     boolean retracting = false;
@@ -174,7 +170,7 @@ public class TeleopMecanum extends OpMode {
     @Override
     public void loop() {
 
-    
+
 
 
        // Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -309,7 +305,7 @@ public class TeleopMecanum extends OpMode {
         }
         if (gamepad1.left_stick_button) {
                 hanger = true;
-                hange.setLiftSetpoint(-2870);
+                hange.setLiftSetpoint(-2800);
         }
 
 
@@ -355,7 +351,7 @@ public class TeleopMecanum extends OpMode {
 
 
 
-        double extendBack = 940 ;
+        double extendBack = 950 ;
         double inStopPos = 530;
         if (retracting && extend.getCurrentPosition() <= extendBack && !touched) {
             tilt.setPosition(tiltUp);
@@ -465,8 +461,8 @@ public class TeleopMecanum extends OpMode {
         lifting = true;
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.23);
-        lifter.setLiftSetpoint(670);
+        dump.setPosition(.24);
+        lifter.setLiftSetpoint(665);
         dumped = false;
 
     }

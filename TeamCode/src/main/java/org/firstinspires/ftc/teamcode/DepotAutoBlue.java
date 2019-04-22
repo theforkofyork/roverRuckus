@@ -227,7 +227,7 @@ public class DepotAutoBlue extends LinearOpMode
                     robot.block.setPosition(1);
                     sleep(150);
                     robot.hang.setPower(-1);
-                    sleep(1500);
+                    sleep(1300);
                     robot.hang.setPower(0);
                     rotateDegrees(-2);
                     rightStrafe(.35);
@@ -347,7 +347,11 @@ public class DepotAutoBlue extends LinearOpMode
                     rightStrafe(.5);
                     sleep(300);
                     powerDrive(0);
+                    robot.marker.setPosition(1);
                     rotateDegrees(125);
+                    rightStrafe(.4);
+                    sleep(400);
+                    powerDrive(0);
                     sleep(80);
                     powerDrive(.5);
                     sleep(550);
