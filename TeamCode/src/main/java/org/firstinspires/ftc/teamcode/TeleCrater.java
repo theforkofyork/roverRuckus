@@ -47,9 +47,9 @@ public class TeleCrater extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.0032;
+    double gUpKp = 0.0025;
     int gUpTolerance = 4;
-    double gDownKp = 0.0025;
+    double gDownKp = 0.0018;
     int gDownTolerance = 4;
     double eUpKp = 0.004;
     int eUpTolerance = 8;
@@ -481,7 +481,7 @@ public class TeleCrater extends OpMode {
         in.setPower(0);
         tilt.setPosition(tiltDown);
         dump.setPosition(.2);
-        lifter.setLiftSetpoint(673);
+        lifter.setLiftSetpoint(678);
         dumped = false;
 
     }

@@ -232,7 +232,7 @@ public class CraterAutoBlue extends LinearOpMode
                 break;
 
                 case Turn: {
-                    rotateDegrees(-2);
+                    rotateDegrees(2);
                     rightStrafe(.35);
                     sleep(400);
                     powerDrive(.2);
@@ -273,7 +273,6 @@ public class CraterAutoBlue extends LinearOpMode
                 }break;
 
                 case LanderAlign: {
-                    ;
                     rotateDegrees(-2);
                     robot.g.setPosition(robot.gClosed);
                     powerDrive(-.3);
@@ -308,7 +307,7 @@ public class CraterAutoBlue extends LinearOpMode
                     sleep(500);
                     // leftStrafe(.6);
                     powerDrive(0);
-                    rotateDegrees(67);
+                    rotateDegrees(72);
                     sleep(100);
                     powerDrive(.8);
                     sleep(1000);
@@ -320,7 +319,7 @@ public class CraterAutoBlue extends LinearOpMode
                     sleep(300);
                     powerDrive(0);
                     sleep(100);
-                    powerDrive(.4);
+                    powerDrive(.6);
                     sleep(400);
                     powerDrive(0);
                     robot.extend.setPower(1);
@@ -342,7 +341,7 @@ public class CraterAutoBlue extends LinearOpMode
                     leftStrafe(.4);
                     sleep(400);
                     powerDrive(0);
-                    powerDrive(.8);
+                    powerDrive(.6);
                     sleep(500);
                     powerDrive(0);
                     robot.tilt.setPosition(robot.tiltUp);

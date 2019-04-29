@@ -47,9 +47,9 @@ public class TeleopMecanum extends OpMode {
     boolean dumped = false;
     boolean extending = false;
     boolean dumping;
-    double gUpKp = 0.003;
+    double gUpKp = 0.0025;
     int gUpTolerance = 4;
-    double gDownKp = 0.0025;
+    double gDownKp = 0.002;
     int gDownTolerance = 4;
     double dumpIdle = .17;
     double dumpPos = .805;
@@ -305,7 +305,7 @@ public class TeleopMecanum extends OpMode {
         }
         if (gamepad1.left_stick_button) {
                 hanger = true;
-                hange.setLiftSetpoint(-2800);
+                hange.setLiftSetpoint(-2890);
         }
 
 
@@ -461,8 +461,8 @@ public class TeleopMecanum extends OpMode {
         lifting = true;
         in.setPower(0);
         tilt.setPosition(tiltDown);
-        dump.setPosition(.24);
-        lifter.setLiftSetpoint(665);
+        dump.setPosition(.21);
+        lifter.setLiftSetpoint(675);
         dumped = false;
 
     }
